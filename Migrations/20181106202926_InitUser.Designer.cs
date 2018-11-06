@@ -9,8 +9,8 @@ using PictureApp_API.Data;
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20181106174203_InitialCreate_UserBasic")]
-    partial class InitialCreate_UserBasic
+    [Migration("20181106202926_InitUser")]
+    partial class InitUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,16 +22,6 @@ namespace PictureApp.API.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<string>("AboutMe");
-
-                    b.Property<DateTime>("Created");
-
-                    b.Property<DateTime>("DateOfBirth");
-
-                    b.Property<string>("Gender");
-
-                    b.Property<DateTime>("LastActive");
 
                     b.Property<byte[]>("PasswordHash");
 
