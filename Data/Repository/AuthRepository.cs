@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PictureApp_API.Models;
 
 namespace PictureApp_API.Data.Repository
@@ -23,6 +24,15 @@ namespace PictureApp_API.Data.Repository
             await dataContext.SaveChangesAsync();
 
             return user;
+        }
+
+        public async Task<bool> UserExists(object username)
+        {
+            if (await dataContext.Users.AnyAsync(x => x.Username == username)){
+                return true;
+            }
+
+            return false;
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
