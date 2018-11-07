@@ -6,6 +6,6 @@ namespace PictureApp_API.Data.Repository
     public interface IAuthRepository
     {
          Task<User> Register(User user, string password);
-        Task<bool> UserExists(object username);
+        Task<bool> UserExists(string username);
     }
 }

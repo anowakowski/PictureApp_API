@@ -26,7 +26,7 @@ namespace PictureApp_API.Data.Repository
             return user;
         }
 
-        public async Task<bool> UserExists(object username)
+        public async Task<bool> UserExists(string username)
         {
             if (await dataContext.Users.AnyAsync(x => x.Username == username)){
                 return true;
