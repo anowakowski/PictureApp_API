@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -35,6 +36,7 @@ namespace PictureApp.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddAutoMapper();
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(opt =>
@@ -43,7 +45,6 @@ namespace PictureApp.API
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
             services.AddScoped<IAuthRepository, AuthRepository>();
-
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -56,8 +57,6 @@ namespace PictureApp.API
                         ValidateAudience = false
                     };
                 });
-
-
         }
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
