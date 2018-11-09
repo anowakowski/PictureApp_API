@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using PictureApp.API.Models;
 using PictureApp_API.Data.Repository;
 using PictureApp_API.Dtos;
-using PictureApp_API.Models;
 
 namespace PictureApp_API.Controllers
 {

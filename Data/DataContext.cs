@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PictureApp_API.Models;
+using PictureApp.API.Models;
 
 namespace PictureApp_API.Data
 {
