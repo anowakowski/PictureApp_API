@@ -39,7 +39,8 @@ namespace PictureApp_API.Controllers
 
             var userToCreate = new User
             {
-                Username = userForRegister.Username
+                Username = userForRegister.Username,
+                Email = userForRegister.Email
             };
 
             var createdUser = await authRepository.Register(userToCreate, userForRegister.Password);
