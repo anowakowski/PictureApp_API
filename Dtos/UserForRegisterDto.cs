@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace PictureApp_API.Dtos
+namespace PictureApp.API.Dtos
 {
     public class UserForRegisterDto
     {

@@ -2,36 +2,42 @@
 using System.Linq;
 using System.Threading.Tasks;
 using PictureApp.API.Data.Repository;
+using PictureApp.API.Dtos;
 using PictureApp.API.Models;
 
 namespace PictureApp.API.Services
 {
     public class AuthService : IAuthService
     {
-        private IRepository<User> _repository;
+        private readonly IRepository<User> _repository;
 
         public AuthService(IRepository<User> repository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public Task<User> Register(User user, string password)
+        public void Register(UserForRegisterDto userForRegister, string password)
         {
             //byte[] passwordHash, passwordSalt;
             var (passwordHash, passwordSalt) = CreatePasswordHash(password);
 
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
-
-            _repository.AddAsync(user);
+            var userToCreate = new User
+            {
+                Username = userForRegister.Username,
+                Email = userForRegister.Email,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
+            };
+            
+            _repository.AddAsync(userToCreate);
             
             // TODO: save changes to database
             //await dataContext.SaveChangesAsync();
 
-            return user;
+            //return user;
         }
 
-        public Task<User> Login(string username, string password)
+        public void Login(string username, string password)
         {
             throw new NotImplementedException();
         }

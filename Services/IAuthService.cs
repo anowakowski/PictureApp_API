@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
-using PictureApp.API.Models;
+using PictureApp.API.Dtos;
 
 namespace PictureApp.API.Services
 {
     public interface IAuthService
     {
-        Task<User> Register(User user, string password);
-        Task<User> Login(string username, string password);
+        void Register(UserForRegisterDto userForRegister, string password);
+        void Login(string username, string password);
         Task<bool> UserExists(string username);
     }
 }
