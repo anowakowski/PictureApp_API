@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PictureApp.API.Data.Repository;
 using PictureApp_API.Data;
 using PictureApp_API.Data.Repository;
 

@@ -1,16 +1,20 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PictureApp.API.Models;
+using PictureApp_API.Data;
+using PictureApp_API.Data.Repository;
 
-namespace PictureApp_API.Data.Repository
+namespace PictureApp.API.Data.Repository
 {
     public class AuthRepository : IAuthRepository
     {
         private readonly DataContext dataContext;
+
         public AuthRepository(DataContext dataContext)
         {
             this.dataContext = dataContext;
         }
+
         public async Task<User> Register(User user, string password)
         {
             byte[] passwordHash, passwordSalt;
