@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -19,11 +20,13 @@ namespace PictureApp_API.Controllers
     {
         private readonly IAuthRepository authRepository;
         private readonly IConfiguration configuration;
+        private readonly IMapper mapper;
 
-        public AuthController(IAuthRepository authRepository, IConfiguration configuration)
+        public AuthController(IAuthRepository authRepository, IConfiguration configuration, IMapper mapper)
         {
             this.authRepository = authRepository;
             this.configuration = configuration;
+            this.mapper = mapper;
         }
 
         [HttpPost("register")]
@@ -36,11 +39,7 @@ namespace PictureApp_API.Controllers
                 return BadRequest("User name already exists");
             }
 
-            var userToCreate = new User
-            {
-                Username = userForRegister.Username,
-                Email = userForRegister.Email
-            };
+            var userToCreate = mapper.Map<User>(userForRegister);
 
             var createdUser = await authRepository.Register(userToCreate, userForRegister.Password);
 
