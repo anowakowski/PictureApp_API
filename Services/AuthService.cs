@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using PictureApp.API.Data;
 using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
+using PictureApp.API.Exceptions;
 using PictureApp.API.Models;
 
 namespace PictureApp.API.Services
@@ -10,16 +12,19 @@ namespace PictureApp.API.Services
     public class AuthService : IAuthService
     {
         private readonly IRepository<User> _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthService(IRepository<User> repository)
+        public AuthService(IRepository<User> repository, IUnitOfWork unitOfWork)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        public void Register(UserForRegisterDto userForRegister, string password)
+        public void Register(UserForRegisterDto userForRegister)
         {
-            //byte[] passwordHash, passwordSalt;
-            var (passwordHash, passwordSalt) = CreatePasswordHash(password);
+            if (userForRegister == null) throw new ArgumentNullException(nameof(userForRegister));
+
+            var (passwordHash, passwordSalt) = CreatePasswordHash(userForRegister.Password);
 
             var userToCreate = new User
             {
@@ -31,20 +36,37 @@ namespace PictureApp.API.Services
             
             _repository.AddAsync(userToCreate);
             
-            // TODO: save changes to database
-            //await dataContext.SaveChangesAsync();
-
-            //return user;
+            _unitOfWork.CompleteAsync();
         }
 
-        public void Login(string username, string password)
+        public async void Login(string email, string password)
         {
-            throw new NotImplementedException();
+            if (!await UserExists(email))
+            {
+                throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
+            }
+
+            var user = GetUser(email);
+
+            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            {
+                throw new NotAuthorizedException($"The user: {email} password verification has been failed");
+            }
         }
 
-        public Task<bool> UserExists(string username)
+        public UserLoggedInDto GetLoggedInUser(string email)
         {
-            throw new NotImplementedException();
+            var user = GetUser(email);
+            return new UserLoggedInDto
+            {
+                Id = user.Id, 
+                Email = user.Email
+            };
+        }
+
+        public async Task<bool> UserExists(string email)
+        {
+            return await _repository.AnyAsync(x => x.Email == email.ToLower());
         }
 
         private (byte[] passwordSalt, byte[] passwordHash) CreatePasswordHash(string password)
@@ -68,6 +90,12 @@ namespace PictureApp.API.Services
             }
 
             return true;
+        }
+
+        private User GetUser(string email)
+        {
+            var users = _repository.Find(x => x.Email == email.ToLower());
+            return users.Single();
         }
     }
 }

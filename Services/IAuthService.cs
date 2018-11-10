@@ -5,8 +5,9 @@ namespace PictureApp.API.Services
 {
     public interface IAuthService
     {
-        void Register(UserForRegisterDto userForRegister, string password);
-        void Login(string username, string password);
-        Task<bool> UserExists(string username);
+        void Register(UserForRegisterDto userForRegister);
+        void Login(string email, string password);
+        UserLoggedInDto GetLoggedInUser(string email);
+        Task<bool> UserExists(string email);
     }
 }
