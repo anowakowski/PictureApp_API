@@ -1,6 +1,8 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PictureApp.API.Dtos;
@@ -16,11 +18,13 @@ namespace PictureApp.API.Controllers
     {
         private readonly IAuthService _authService;        
         private readonly IAuthTokenProvider _tokenProvider;
-        
-        public AuthController(IAuthService authService, IAuthTokenProvider tokenProvider)
+        private readonly IMapper _mapper;
+
+        public AuthController(IAuthService authService, IAuthTokenProvider tokenProvider, IMapper mapper)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpPost("register")]
