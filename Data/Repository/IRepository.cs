@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace PictureApp.API.Data.Repository
 {
@@ -9,6 +10,8 @@ namespace PictureApp.API.Data.Repository
         IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
 
         void AddAsync(TEntity entity);
+
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
 
         TEntity GetById(int id);
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PictureApp.API.Models;
 
-namespace PictureApp_API.Data
+namespace PictureApp.API.Data
 {
     public class DataContext : DbContext
     {

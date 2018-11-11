@@ -1,8 +1,8 @@
 using AutoMapper;
+using PictureApp.API.Dtos;
 using PictureApp.API.Models;
-using PictureApp_API.Dtos;
 
-namespace PictureApp_API.Helpers
+namespace PictureApp.API.Helpers
 {
     public class AutoMapperProfiles : Profile
     {

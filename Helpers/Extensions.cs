@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace PictureApp_API.Helpers
+namespace PictureApp.API.Helpers
 {
     public static class Extensions
     {

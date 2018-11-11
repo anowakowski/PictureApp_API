@@ -15,9 +15,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
-using PictureApp_API.Data;
-using PictureApp_API.Data.Repository;
-using PictureApp_API.Helpers;
+using PictureApp.API.Data.Repository;
+using PictureApp.API.Helpers;
+using PictureApp.API.Models;
+using PictureApp.API.Providers;
+using PictureApp.API.Services;
 
 namespace PictureApp.API
 {
@@ -36,13 +38,16 @@ namespace PictureApp.API
             services.AddCors();
             services.AddAutoMapper();
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(opt =>
                 {
                     opt.SerializerSettings.ReferenceLoopHandling =
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-                });
-            services.AddScoped<IAuthRepository, AuthRepository>();
+                });            
+            services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRepository<User>, Repository<User>>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -57,6 +62,7 @@ namespace PictureApp.API
                     };
                 });
         }
+
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

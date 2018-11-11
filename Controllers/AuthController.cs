@@ -1,32 +1,26 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using PictureApp.API.Models;
-using PictureApp_API.Data.Repository;
-using PictureApp_API.Dtos;
+using PictureApp.API.Dtos;
+using PictureApp.API.Exceptions;
+using PictureApp.API.Providers;
+using PictureApp.API.Services;
 
-namespace PictureApp_API.Controllers
+namespace PictureApp.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository authRepository;
-        private readonly IConfiguration configuration;
-        private readonly IMapper mapper;
+        private readonly IAuthService _authService;        
+        private readonly IAuthTokenProvider _tokenProvider;
 
-        public AuthController(IAuthRepository authRepository, IConfiguration configuration, IMapper mapper)
+        public AuthController(IAuthService authService, IAuthTokenProvider tokenProvider)
         {
-            this.authRepository = authRepository;
-            this.configuration = configuration;
-            this.mapper = mapper;
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         }
 
         [HttpPost("register")]
@@ -34,53 +28,34 @@ namespace PictureApp_API.Controllers
         {
             userForRegister.Username = userForRegister.Username.ToLower();
 
-            if (await authRepository.UserExists(userForRegister.Username))
+            if (await _authService.UserExists(userForRegister.Email.ToLower()))
             {
-                return BadRequest("User name already exists");
+                return BadRequest("User email already exists");
             }
 
-            var userToCreate = mapper.Map<User>(userForRegister);
-
-            var createdUser = await authRepository.Register(userToCreate, userForRegister.Password);
-
-            return StatusCode(201);
+            _authService.Register(userForRegister);
+            
+            return StatusCode(StatusCodes.Status201Created);
         }
 
-       [HttpPost("login")]
-        public async Task<ActionResult> Login(UserForLoginDto userForLogin)
+        [HttpPost("login")]
+        public ActionResult Login(UserForLoginDto userForLogin)
         {
-            var userFromRepo = await authRepository.Login(userForLogin.Username.ToLower(), userForLogin.Password);
+            try
+            {
+                _authService.Login(userForLogin.Email, userForLogin.Password);
+                var loggedInUser = _authService.GetLoggedInUser(userForLogin.Email.ToLower());
 
-            if (userFromRepo == null)
+                var token = _tokenProvider.GetToken(
+                    new Claim(ClaimTypes.NameIdentifier, loggedInUser.Id.ToString()),
+                    new Claim(ClaimTypes.Name, loggedInUser.Email));
+
+                return Ok(new { token });
+            }
+            catch (Exception e) when (e is EntityNotFoundException || e is NotAuthorizedException)
+            {
                 return Unauthorized();
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.Username)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(configuration.GetSection("AppSettings:Token").Value));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return Ok(new
-            {
-                token = tokenHandler.WriteToken(token)
-            });
-
-        }        
+            }
+        }
     }
 }
