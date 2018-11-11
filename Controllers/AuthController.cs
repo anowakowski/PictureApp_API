@@ -26,9 +26,9 @@ namespace PictureApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userForRegister)
         {
-            userForRegister.Username = userForRegister.Username.ToLower();
+            userForRegister.Email = userForRegister.Email.ToLower();
 
-            if (await _authService.UserExists(userForRegister.Email.ToLower()))
+            if (await _authService.UserExists(userForRegister.Email))
             {
                 return BadRequest("User email already exists");
             }

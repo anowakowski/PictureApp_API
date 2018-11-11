@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using PictureApp.API.Helpers;
 
 namespace PictureApp.API.Providers
 {
@@ -28,7 +29,7 @@ namespace PictureApp.API.Providers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
+                Expires = SystemTime.Now().AddDays(1),
                 SigningCredentials = credentials
             };
 
