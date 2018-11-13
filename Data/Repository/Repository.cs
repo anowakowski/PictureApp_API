@@ -34,9 +34,9 @@ namespace PictureApp.API.Data.Repository
             return DbSet.AnyAsync(predicate);
         }
 
-        public TEntity GetById(int id)
+        public async Task<TEntity> GetById(int id)
         {            
-            return DbSet.Single(x => x.Id == id);
+            return await DbSet.SingleAsync(x => x.Id == id);
         }
 
         public void Delete(TEntity entity)
