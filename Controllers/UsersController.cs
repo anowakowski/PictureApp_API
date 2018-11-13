@@ -15,10 +15,10 @@ namespace PictureApp_API.Controllers
         public UsersController(IUserService userService)
         {
             this.userService = userService;
-        }
+        }   
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(int id)
         {
             return Ok(await userService.GetUser(id));
         }
