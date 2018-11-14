@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2050
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PictureApp.API", "PictureApp.API\PictureApp.API.csproj", "{BE5E88D3-346F-4F8C-A2E8-3D2506729E72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PictureApp.API.Tests", "PictureApp.API.Tests\PictureApp.API.Tests.csproj", "{1E58771A-1F20-4933-B7F3-CFED70CBFA64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BE5E88D3-346F-4F8C-A2E8-3D2506729E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE5E88D3-346F-4F8C-A2E8-3D2506729E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE5E88D3-346F-4F8C-A2E8-3D2506729E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE5E88D3-346F-4F8C-A2E8-3D2506729E72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E58771A-1F20-4933-B7F3-CFED70CBFA64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E58771A-1F20-4933-B7F3-CFED70CBFA64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E58771A-1F20-4933-B7F3-CFED70CBFA64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E58771A-1F20-4933-B7F3-CFED70CBFA64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D4F366E-B1AF-43C1-AF19-D54F1B8B1DE3}
+	EndGlobalSection
+EndGlobal
