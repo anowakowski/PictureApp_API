@@ -13,7 +13,7 @@ namespace PictureApp.API.Data.Repository
 
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
 
-        TEntity GetById(int id);
+        Task<TEntity> GetById(int id);
 
         void Delete(TEntity entity);
 
