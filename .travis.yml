@@ -9,3 +9,4 @@ before_script:
  
 script:
  - dotnet build
+ - dotnet test PictureApp.API.Tests/PictureApp.API.Tests.csproj
