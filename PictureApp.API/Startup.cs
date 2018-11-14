@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +20,7 @@ using PictureApp.API.Helpers;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
+using PictureApp_API.Services;
 
 namespace PictureApp.API
 {
@@ -47,6 +48,7 @@ namespace PictureApp.API
                 });            
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
