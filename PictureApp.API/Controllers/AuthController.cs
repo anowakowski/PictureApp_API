@@ -21,15 +21,13 @@ namespace PictureApp.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository authRepository;
         private readonly IAuthTokenProvider _jwtToken;
         private readonly IAuthService _authService;
 
         public AuthController(IAuthRepository authRepository, IAuthTokenProvider jwtToken, IAuthService authService)
         {
-            this.authRepository = authRepository;
-            _jwtToken = jwtToken;
-            _authService = authService;
+            _jwtToken = jwtToken ?? throw new ArgumentNullException(nameof(jwtToken));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         [HttpPost("register")]
@@ -63,8 +61,6 @@ namespace PictureApp.API.Controllers
             {
                 token = token
             });
-
         }
- 
     }
 }

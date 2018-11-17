@@ -20,7 +20,7 @@ namespace PictureApp.API.Services
         {
             _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _mapper = mapper;
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); 
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
@@ -30,13 +30,9 @@ namespace PictureApp.API.Services
             byte[] passwordHash, passwordSalt;
             CreatePasswordHash(userForRegister.Password, out passwordHash, out passwordSalt);
 
-            var userToCreate = new User
-            {
-                Username = userForRegister.Username,
-                Email = userForRegister.Email,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
-            };
+            var userToCreate = _mapper.Map<User>(userForRegister);
+            userToCreate.PasswordHash = passwordHash;
+            userToCreate.PasswordSalt = passwordSalt;
             
             await _authRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();
