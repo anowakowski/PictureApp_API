@@ -45,7 +45,7 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
             }
 
-            var userFromRepo = await _repository.SingleAsync(email, password);
+            var userFromRepo = await _repository.SingleAsync(x => x.Email == email);
 
             if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
             {
