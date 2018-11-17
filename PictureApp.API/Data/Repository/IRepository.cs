@@ -18,5 +18,6 @@ namespace PictureApp.API.Data.Repository
         void Delete(TEntity entity);
 
         void Update(TEntity entity);
+        Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }
