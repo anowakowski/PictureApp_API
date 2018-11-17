@@ -55,7 +55,8 @@ namespace PictureApp.API.Controllers
 
             var token = _jwtToken.GetToken(
                 new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
-                new Claim(ClaimTypes.Email, userForLoggedDto.Email));                
+                new Claim(ClaimTypes.Email, userForLoggedDto.Email),
+                new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
 
             return Ok(new
             {
