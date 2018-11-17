@@ -12,13 +12,13 @@ namespace PictureApp.API.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IAuthRepository _authRepository;
+        private readonly IRepository<User> _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public AuthService(IAuthRepository authRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public AuthService(IRepository<User> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); 
         }
@@ -34,7 +34,7 @@ namespace PictureApp.API.Services
             userToCreate.PasswordHash = passwordHash;
             userToCreate.PasswordSalt = passwordSalt;
             
-            await _authRepository.AddAsync(userToCreate);
+            await _repository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -45,7 +45,7 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
             }
 
-            var userFromRepo = await _authRepository.Login(email, password);
+            var userFromRepo = await _repository.SingleAsync(x => x.Email == email);
 
             if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
             {
@@ -57,7 +57,7 @@ namespace PictureApp.API.Services
 
         public async Task<bool> UserExists(string email)
         {
-            return await _authRepository.AnyAsync(x => x.Email == email.ToLower());
+            return await _repository.AnyAsync(x => x.Email == email.ToLower());
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -86,7 +86,7 @@ namespace PictureApp.API.Services
 
         private User GetUser(string email)
         {
-            var users = _authRepository.Find(x => x.Email == email.ToLower());
+            var users = _repository.Find(x => x.Email == email.ToLower());
             return users.Single();
         }
 

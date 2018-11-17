@@ -24,7 +24,7 @@ namespace PictureApp.API.Controllers
         private readonly IAuthTokenProvider _jwtToken;
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthRepository authRepository, IAuthTokenProvider jwtToken, IAuthService authService)
+        public AuthController(IAuthTokenProvider jwtToken, IAuthService authService)
         {
             _jwtToken = jwtToken ?? throw new ArgumentNullException(nameof(jwtToken));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));

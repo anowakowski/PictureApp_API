@@ -12,7 +12,6 @@ namespace PictureApp_API.Services
     public class UserService : IUserService
     {
         private readonly IRepository<User> userRepo;
-        private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         public UserService(IRepository<User> userRepo, IMapper mapper)
         {
