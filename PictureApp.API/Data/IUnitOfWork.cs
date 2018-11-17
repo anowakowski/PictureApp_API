@@ -1,7 +1,9 @@
-﻿namespace PictureApp.API.Data
+﻿using System.Threading.Tasks;
+
+namespace PictureApp.API.Data
 {
     public interface IUnitOfWork
     {
-        void CompleteAsync();
+        Task CompleteAsync();
     }
 }

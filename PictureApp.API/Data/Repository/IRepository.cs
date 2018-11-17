@@ -9,7 +9,7 @@ namespace PictureApp.API.Data.Repository
     {            
         IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
 
-        void AddAsync(TEntity entity);
+        Task AddAsync(TEntity entity);
 
         Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
 
