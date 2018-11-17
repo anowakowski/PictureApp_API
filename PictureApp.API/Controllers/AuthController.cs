@@ -35,36 +35,29 @@ namespace PictureApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userForRegister)
         {
-            userForRegister.Username = userForRegister.Username.ToLower();
+            userForRegister.Email = userForRegister.Email.ToLower();
 
-            if (await authRepository.UserExists(userForRegister.Username))
+            if (await _authService.UserExists(userForRegister.Email))
             {
                 return BadRequest("User name already exists");
             }
 
-            var userToCreate = new User
-            {
-                Username = userForRegister.Username,
-                Email = userForRegister.Email
-
-            };
-
-            var createdUser = await authRepository.Register(userToCreate, userForRegister.Password);
-
+            await Task.Run(() => _authService.Register(userForRegister));
+            
             return StatusCode(201);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult> Login(UserForLoginDto userForLogin)
         {
-            var userFromRepo = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
+            var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
 
-            if (userFromRepo == null)
+            if (userForLoggedDto == null)
                 return Unauthorized();
 
             var token = _jwtToken.GetToken(
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Email, userFromRepo.Email));                
+                new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
+                new Claim(ClaimTypes.Email, userForLoggedDto.Email));                
 
             return Ok(new
             {

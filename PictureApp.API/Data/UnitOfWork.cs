@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace PictureApp.API.Data
@@ -12,7 +13,7 @@ namespace PictureApp.API.Data
             DbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async void CompleteAsync()
+        public async Task CompleteAsync()
         {
             await DbContext.SaveChangesAsync();
         }

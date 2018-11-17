@@ -24,7 +24,7 @@ namespace PictureApp.API.Data.Repository
             return DbSet.Where(predicate).ToList();
         }
 
-        public async void AddAsync(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
             await DbContext.AddAsync(entity);
         }

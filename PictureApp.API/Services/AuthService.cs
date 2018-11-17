@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
@@ -13,18 +14,21 @@ namespace PictureApp.API.Services
     {
         private readonly IAuthRepository _authRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AuthService(IAuthRepository authRepository, IUnitOfWork unitOfWork)
+        public AuthService(IAuthRepository authRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper;
         }
 
-        public void Register(UserForRegisterDto userForRegister)
+        public async Task Register(UserForRegisterDto userForRegister)
         {
             if (userForRegister == null) throw new ArgumentNullException(nameof(userForRegister));
 
-            var (passwordHash, passwordSalt) = CreatePasswordHash(userForRegister.Password);
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(userForRegister.Password, out passwordHash, out passwordSalt);
 
             var userToCreate = new User
             {
@@ -34,9 +38,8 @@ namespace PictureApp.API.Services
                 PasswordSalt = passwordSalt
             };
             
-            _authRepository.AddAsync(userToCreate);
-            
-            _unitOfWork.CompleteAsync();
+            await _authRepository.AddAsync(userToCreate);
+            await _unitOfWork.CompleteAsync();
         }
 
         public async Task<UserLoggedInDto> Login(string email, string password)
@@ -46,24 +49,14 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
             }
 
-            var user = await _authRepository.Login(email, password);
+            var userFromRepo = await _authRepository.Login(email, password);
 
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
             {
                 throw new NotAuthorizedException($"The user: {email} password verification has been failed");
             }
 
-            return GetLoggedInUser(user);
-        }
-
-        public UserLoggedInDto GetLoggedInUser(User user)
-        {
-            return new UserLoggedInDto
-            {
-                Id = user.Id, 
-                Username = user.Username,
-                Email = user.Email
-            };
+            return _mapper.Map<UserLoggedInDto>(userFromRepo);
         }
 
         public async Task<bool> UserExists(string email)
@@ -71,11 +64,12 @@ namespace PictureApp.API.Services
             return await _authRepository.AnyAsync(x => x.Email == email.ToLower());
         }
 
-        private (byte[] passwordSalt, byte[] passwordHash) CreatePasswordHash(string password)
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                return (hmac.Key, hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
         }
 
@@ -99,5 +93,6 @@ namespace PictureApp.API.Services
             var users = _authRepository.Find(x => x.Email == email.ToLower());
             return users.Single();
         }
+
     }
 }
