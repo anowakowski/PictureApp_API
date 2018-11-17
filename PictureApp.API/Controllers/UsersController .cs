@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ using PictureApp_API.Services;
         private readonly IUserService userService;
         public UsersController(IUserService userService)
         {
-            this.userService = userService;
+            this.userService = userService ?? throw new ArgumentNullException(nameof(userService));;
         }   
          [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
