@@ -45,7 +45,8 @@ namespace PictureApp.API
                 {
                     opt.SerializerSettings.ReferenceLoopHandling =
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-                });            
+                }); 
+            services.AddScoped<IAuthRepository, AuthRepository>();           
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
