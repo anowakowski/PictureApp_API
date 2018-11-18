@@ -53,5 +53,10 @@ namespace PictureApp.API.Data.Repository
         {
             return await DbSet.SingleAsync(predicate);
         }
+
+        public async Task<IEnumerable<TEntity>> GetAll()
+        {
+            return await DbSet.ToListAsync();
+        }
     }
 }
