@@ -1,7 +1,9 @@
-﻿namespace PictureApp.API.Providers
+﻿using System.Threading.Tasks;
+
+namespace PictureApp.API.Providers
 {
     public interface IEmailClientProvider
     {
-        void Send(string to, string subject, string body);
+        Task SendAsync(string to, string subject, string body);
     }
 }

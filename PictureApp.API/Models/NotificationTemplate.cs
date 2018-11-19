@@ -2,9 +2,14 @@
 {
     public class NotificationTemplate : Entity
     {
-        public string Name;
-        public string Description;
-        public string TemplateBody;
-        public string Abbreviation;
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public string Subject { get; set; }
+
+        public string Body { get; set; }
+
+        public string Abbreviation { get; set; }
     }
 }

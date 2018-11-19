@@ -1,9 +1,10 @@
-﻿using PictureApp.API.Services.NotificationTemplates;
+﻿using System.Threading.Tasks;
+using PictureApp.API.Services.NotificationTemplateData;
 
 namespace PictureApp.API.Services
 {
     public interface INotificationService
     {
-        void Send(string recipient, INotificationTemplateData notificationTemplate);
+        void SendAsync(string recipient, INotificationTemplateData templateData);
     }
 }
