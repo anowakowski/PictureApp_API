@@ -48,15 +48,14 @@ namespace PictureApp.API.Data.Repository
         {
             DbContext.Update(entity);
         }
+        public async Task<IEnumerable<TEntity>> GetAllWithIncludedEntities(Expression<Func<TEntity, object>> predicate)
+        {
+            return await DbSet.Include(predicate).ToListAsync();
+        }
 
         public async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate) 
         {
             return await DbSet.SingleAsync(predicate);
-        }
-
-        public async Task<IEnumerable<TEntity>> GetAll()
-        {
-            return await DbSet.ToListAsync();
         }
     }
 }

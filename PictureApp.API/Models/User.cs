@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace PictureApp.API.Models
 {
     public class User : Entity
@@ -6,5 +8,6 @@ namespace PictureApp.API.Models
         public string Email { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
+        public ICollection<Photo> Photos { get; set; }
     }
 }

@@ -27,7 +27,7 @@ namespace PictureApp_API.Services
 
         public async Task<IEnumerable<UserWithPhotosListDto>> GetUsersWithPhotos()
         {
-            var returnedUsers = await userRepo.GetAll();
+            var returnedUsers = await userRepo.GetAllWithIncludedEntities(c => c.Photos);
 
             return _mapper.Map<IEnumerable<UserWithPhotosListDto>>(returnedUsers);
         }

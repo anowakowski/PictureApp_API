@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace PictureApp.API.Data.Repository
 {
@@ -20,7 +22,7 @@ namespace PictureApp.API.Data.Repository
         void Update(TEntity entity);
         Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
 
-        Task<IEnumerable<TEntity>> GetAll();
+        Task<IEnumerable<TEntity>> GetAllWithIncludedEntities(Expression<Func<TEntity, object>> predicate);
         
     }
 }
