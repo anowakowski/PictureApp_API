@@ -25,11 +25,11 @@ namespace PictureApp_API.Services
             return _mapper.Map<UserForDetailedDto>(findedUser);
         }
 
-        public async Task<IEnumerable<UserWithPhotosListDto>> GetUsersWithPhotos()
+        public async Task<IEnumerable<UserForExploreDto>> GetUsersWithPhotos()
         {
             var returnedUsers = await userRepo.GetAllWithIncludedEntities(c => c.Photos);
 
-            return _mapper.Map<IEnumerable<UserWithPhotosListDto>>(returnedUsers);
+            return _mapper.Map<IEnumerable<UserForExploreDto>>(returnedUsers);
         }
     }
 }

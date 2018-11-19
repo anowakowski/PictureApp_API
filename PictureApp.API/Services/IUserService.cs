@@ -8,6 +8,6 @@ namespace PictureApp_API.Services
     public interface IUserService
     {
         Task<UserForDetailedDto> GetUser(int userId);
-        Task<IEnumerable<UserWithPhotosListDto>> GetUsersWithPhotos();
+        Task<IEnumerable<UserForExploreDto>> GetUsersWithPhotos();
     }
 }
