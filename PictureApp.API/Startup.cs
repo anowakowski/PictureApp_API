@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repository;
+using PictureApp.API.Data.SeedData;
 using PictureApp.API.Helpers;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -63,9 +64,10 @@ namespace PictureApp.API
                         ValidateAudience = false
                     };
                 });
+            services.AddTransient<Seed>();                
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seeder)
         {
             if (env.IsDevelopment())
             {
@@ -88,7 +90,7 @@ namespace PictureApp.API
                     });
                 });
             }
-
+            seeder.SeedUsers();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();
