@@ -1,10 +1,17 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
 using PictureApp.API.Exceptions;
+using PictureApp.API.Models;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
 
@@ -14,13 +21,13 @@ namespace PictureApp.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;        
-        private readonly IAuthTokenProvider _tokenProvider;
+        private readonly IAuthTokenProvider _jwtToken;
+        private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService, IAuthTokenProvider tokenProvider)
+        public AuthController(IAuthTokenProvider jwtToken, IAuthService authService)
         {
+            _jwtToken = jwtToken ?? throw new ArgumentNullException(nameof(jwtToken));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         }
 
         [HttpPost("register")]
@@ -30,32 +37,31 @@ namespace PictureApp.API.Controllers
 
             if (await _authService.UserExists(userForRegister.Email))
             {
-                return BadRequest("User email already exists");
+                return BadRequest("User name already exists");
             }
 
-            _authService.Register(userForRegister);
+            await Task.Run(() => _authService.Register(userForRegister));
             
-            return StatusCode(StatusCodes.Status201Created);
+            return StatusCode(201);
         }
 
         [HttpPost("login")]
-        public ActionResult Login(UserForLoginDto userForLogin)
+        public async Task<ActionResult> Login(UserForLoginDto userForLogin)
         {
-            try
-            {
-                _authService.Login(userForLogin.Email, userForLogin.Password);
-                var loggedInUser = _authService.GetLoggedInUser(userForLogin.Email.ToLower());
+            var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
 
-                var token = _tokenProvider.GetToken(
-                    new Claim(ClaimTypes.NameIdentifier, loggedInUser.Id.ToString()),
-                    new Claim(ClaimTypes.Name, loggedInUser.Email));
-
-                return Ok(new { token });
-            }
-            catch (Exception e) when (e is EntityNotFoundException || e is NotAuthorizedException)
-            {
+            if (userForLoggedDto == null)
                 return Unauthorized();
-            }
+
+            var token = _jwtToken.GetToken(
+                new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
+                new Claim(ClaimTypes.Email, userForLoggedDto.Email),
+                new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
+
+            return Ok(new
+            {
+                token = token
+            });
         }
     }
 }

@@ -24,7 +24,7 @@ namespace PictureApp.API.Data.Repository
             return DbSet.Where(predicate).ToList();
         }
 
-        public async void AddAsync(TEntity entity)
+        public async Task AddAsync(TEntity entity)
         {
             await DbContext.AddAsync(entity);
         }
@@ -47,6 +47,11 @@ namespace PictureApp.API.Data.Repository
         public void Update(TEntity entity)
         {
             DbContext.Update(entity);
+        }
+
+        public async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate) 
+        {
+            return await DbSet.SingleAsync(predicate);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
@@ -13,55 +14,45 @@ namespace PictureApp.API.Services
     {
         private readonly IRepository<User> _repository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AuthService(IRepository<User> repository, IUnitOfWork unitOfWork)
+        public AuthService(IRepository<User> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); 
         }
 
-        public void Register(UserForRegisterDto userForRegister)
+        public async Task Register(UserForRegisterDto userForRegister)
         {
             if (userForRegister == null) throw new ArgumentNullException(nameof(userForRegister));
 
-            var (passwordHash, passwordSalt) = CreatePasswordHash(userForRegister.Password);
+            byte[] passwordHash, passwordSalt;
+            CreatePasswordHash(userForRegister.Password, out passwordHash, out passwordSalt);
 
-            var userToCreate = new User
-            {
-                Username = userForRegister.Username,
-                Email = userForRegister.Email,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
-            };
+            var userToCreate = _mapper.Map<User>(userForRegister);
+            userToCreate.PasswordHash = passwordHash;
+            userToCreate.PasswordSalt = passwordSalt;
             
-            _repository.AddAsync(userToCreate);
-            
-            _unitOfWork.CompleteAsync();
+            await _repository.AddAsync(userToCreate);
+            await _unitOfWork.CompleteAsync();
         }
 
-        public async void Login(string email, string password)
+        public async Task<UserLoggedInDto> Login(string email, string password)
         {
             if (!await UserExists(email))
             {
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
             }
 
-            var user = GetUser(email);
+            var userFromRepo = await _repository.SingleAsync(x => x.Email == email);
 
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
             {
                 throw new NotAuthorizedException($"The user: {email} password verification has been failed");
             }
-        }
 
-        public UserLoggedInDto GetLoggedInUser(string email)
-        {
-            var user = GetUser(email);
-            return new UserLoggedInDto
-            {
-                Id = user.Id, 
-                Email = user.Email
-            };
+            return _mapper.Map<UserLoggedInDto>(userFromRepo);
         }
 
         public async Task<bool> UserExists(string email)
@@ -69,11 +60,12 @@ namespace PictureApp.API.Services
             return await _repository.AnyAsync(x => x.Email == email.ToLower());
         }
 
-        private (byte[] passwordSalt, byte[] passwordHash) CreatePasswordHash(string password)
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                return (hmac.Key, hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password)));
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
         }
 
@@ -83,9 +75,9 @@ namespace PictureApp.API.Services
             {
                 var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
 
-                if (computedHash.Where((t, i) => t != passwordHash[i]).Any())
+                for (int i = 0; i < computedHash.Length; i++)
                 {
-                    return false;
+                    if (computedHash[i] != passwordHash[i]) return false;
                 }
             }
 
@@ -97,5 +89,6 @@ namespace PictureApp.API.Services
             var users = _repository.Find(x => x.Email == email.ToLower());
             return users.Single();
         }
+
     }
 }

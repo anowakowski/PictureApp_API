@@ -21,6 +21,7 @@ namespace PictureApp.API.Helpers
         {
             CreateMap<User, UserForRegisterDto>()
                 .ForMember(dest => dest.Password, opt => opt.Ignore());
+            CreateMap<User, UserLoggedInDto>();                
         }
     }
 }
