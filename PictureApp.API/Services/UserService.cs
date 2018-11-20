@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
@@ -27,7 +28,7 @@ namespace PictureApp_API.Services
 
         public async Task<IEnumerable<UserForExploreDto>> GetUsersWithPhotos()
         {
-            var returnedUsers = await userRepo.GetAllWithIncludedEntities(c => c.Photos);
+            var returnedUsers = await userRepo.GetAllWithIncludedEntities(c => c.Photos).ToListAsync();
 
             return _mapper.Map<IEnumerable<UserForExploreDto>>(returnedUsers);
         }
