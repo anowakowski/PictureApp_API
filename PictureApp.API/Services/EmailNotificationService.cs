@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using MoreLinq.Extensions;
 using PictureApp.API.Data.Repository;
@@ -37,7 +38,7 @@ namespace PictureApp.API.Services
             var body = GetEmailBody(notificationTemplate.Body, templateData);
 
             // Send the email via gateway client
-            await _emailClientProvider.SendAsync(recipient, notificationTemplate.Subject, body);
+            await _emailClientProvider.SendAsync(new MailAddress(recipient), notificationTemplate.Subject, body);
         }
 
         private string GetEmailBody(string template, INotificationTemplateData templateData)
