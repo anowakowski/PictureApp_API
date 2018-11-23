@@ -63,11 +63,10 @@ namespace PictureApp.API
                         ValidateIssuer = false,
                         ValidateAudience = false
                     };
-                });
-            services.AddTransient<Seed>();                
+                });           
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seeder)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -90,7 +89,6 @@ namespace PictureApp.API
                     });
                 });
             }
-            //seeder.SeedUsers();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();
