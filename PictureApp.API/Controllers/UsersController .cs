@@ -21,12 +21,6 @@ namespace PictureApp_API.Controllers
             ;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
-        {
-            return Ok(await _userService.GetUsersWithPhotos());
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {

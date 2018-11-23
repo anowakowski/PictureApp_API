@@ -21,6 +21,5 @@ namespace PictureApp.API.Data.Repository
 
         void Update(TEntity entity);
         Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
-        IQueryable<TEntity> GetAllWithIncludedEntities(Expression<Func<TEntity, object>> predicate);
-    }
+   }
 }
