@@ -62,7 +62,7 @@ namespace PictureApp.API
                         ValidateIssuer = false,
                         ValidateAudience = false
                     };
-                });
+                });           
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -88,7 +88,6 @@ namespace PictureApp.API
                     });
                 });
             }
-
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();
