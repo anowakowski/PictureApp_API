@@ -80,15 +80,18 @@ namespace PictureApp.API.Migrations
 
             modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
                 {
-                    b.Property<int>("FollowerId");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<int>("FolloweeId");
 
-                    b.Property<int>("Id");
+                    b.Property<int>("FollowerId");
 
-                    b.HasKey("FollowerId", "FolloweeId");
+                    b.HasKey("Id");
 
                     b.HasIndex("FolloweeId");
+
+                    b.HasIndex("FollowerId");
 
                     b.ToTable("UserFollower");
                 });

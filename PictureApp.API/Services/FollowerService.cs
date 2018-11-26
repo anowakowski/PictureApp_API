@@ -42,7 +42,7 @@ namespace PictureApp.API.Services
                 FolloweeId = recipientId
             };
 
-            await _repository.AddAsync(userFollower);
+            await _repository.AddAsync(follower);
 
             await _unitOfWork.CompleteAsync();
         }

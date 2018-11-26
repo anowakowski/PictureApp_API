@@ -23,7 +23,7 @@ namespace PictureApp.API.Controllers
             _followerService = followerService;
         }
 
-        [HttpPost("following/{id}")]
+        [HttpPost("{id}/setfollow")]
         public async Task<IActionResult> SetUpFollower(int userId, int id)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))

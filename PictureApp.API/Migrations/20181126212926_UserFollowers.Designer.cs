@@ -9,7 +9,7 @@ using PictureApp.API.Data;
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20181126111532_UserFollowers")]
+    [Migration("20181126212926_UserFollowers")]
     partial class UserFollowers
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -82,15 +82,18 @@ namespace PictureApp.API.Migrations
 
             modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
                 {
-                    b.Property<int>("FollowerId");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<int>("FolloweeId");
 
-                    b.Property<int>("Id");
+                    b.Property<int>("FollowerId");
 
-                    b.HasKey("FollowerId", "FolloweeId");
+                    b.HasKey("Id");
 
                     b.HasIndex("FolloweeId");
+
+                    b.HasIndex("FollowerId");
 
                     b.ToTable("UserFollower");
                 });
