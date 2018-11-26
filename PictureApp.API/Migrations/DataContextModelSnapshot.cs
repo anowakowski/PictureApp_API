@@ -80,15 +80,15 @@ namespace PictureApp.API.Migrations
 
             modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
                 {
-                    b.Property<int>("UserId");
-
                     b.Property<int>("FollowerId");
+
+                    b.Property<int>("FolloweeId");
 
                     b.Property<int>("Id");
 
-                    b.HasKey("UserId", "FollowerId");
+                    b.HasKey("FollowerId", "FolloweeId");
 
-                    b.HasIndex("FollowerId");
+                    b.HasIndex("FolloweeId");
 
                     b.ToTable("UserFollower");
                 });
@@ -103,14 +103,14 @@ namespace PictureApp.API.Migrations
 
             modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
                 {
-                    b.HasOne("PictureApp.API.Models.User", "Follower")
+                    b.HasOne("PictureApp.API.Models.User", "Followee")
                         .WithMany("Following")
-                        .HasForeignKey("FollowerId")
+                        .HasForeignKey("FolloweeId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("PictureApp.API.Models.User", "User")
+                    b.HasOne("PictureApp.API.Models.User", "Follower")
                         .WithMany("Followers")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("FollowerId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

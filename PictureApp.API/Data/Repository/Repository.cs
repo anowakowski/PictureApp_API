@@ -53,5 +53,10 @@ namespace PictureApp.API.Data.Repository
         {
             return await DbSet.SingleAsync(predicate);
         }
+
+        public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await DbSet.FirstOrDefaultAsync(predicate);
+        }
     }
 }
