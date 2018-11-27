@@ -3,9 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data;
-using PictureApp.API.Data.Repository;
+using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
-using PictureApp.API.Exceptions;
+using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 
 namespace PictureApp.API.Services

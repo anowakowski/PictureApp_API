@@ -5,6 +5,6 @@ namespace PictureApp.API.Services
 {
     public interface INotificationService
     {
-        void SendAsync(string recipient, INotificationTemplateData templateData);
+        Task SendAsync(string recipient, INotificationTemplateData templateData);
     }
 }

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -15,12 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
-using PictureApp.API.Data.Repository;
+using PictureApp.API.Data.Repositories;
 using PictureApp.API.Helpers;
-using PictureApp.API.Models;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
-using PictureApp_API.Services;
 
 namespace PictureApp.API
 {
