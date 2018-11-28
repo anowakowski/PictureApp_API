@@ -1,9 +1,9 @@
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using PictureApp.API.Data;
-using PictureApp.API.Data.Repository;
+using PictureApp.API.Data.Repositories;
 using PictureApp.API.Models;
-using PictureApp_API.Services;
+using PictureApp.API.Services;
 
 namespace PictureApp.API.Services
 {

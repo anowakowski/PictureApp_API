@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PictureApp.API.Services;
-using PictureApp_API.Services;
 
 namespace PictureApp.API.Controllers
 {
