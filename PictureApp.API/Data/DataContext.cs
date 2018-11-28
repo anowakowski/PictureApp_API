@@ -13,8 +13,6 @@ namespace PictureApp.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<UserFollower>().HasKey(u => new {u.Id, u.FollowerId, u.FolloweeId});
-
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Followers)
                 .WithOne(f => f.Follower)
@@ -24,7 +22,6 @@ namespace PictureApp.API.Data
                 .HasMany(u => u.Following)
                 .WithOne(f => f.Followee)
                 .HasForeignKey(f => f.FolloweeId);                
-
         }
     }
 }
