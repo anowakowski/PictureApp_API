@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PictureApp.API.Helpers
+namespace PictureApp.API.Extensions
 {
     public class SystemTime
     {

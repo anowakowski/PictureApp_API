@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PictureApp_API.Services;
-namespace PictureApp_API.Controllers
+using PictureApp.API.Services;
+
+namespace PictureApp.API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]

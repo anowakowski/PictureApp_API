@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PictureApp.API.Helpers;
+using PictureApp.API.Extensions;
 
 namespace PictureApp.API.Providers
 {

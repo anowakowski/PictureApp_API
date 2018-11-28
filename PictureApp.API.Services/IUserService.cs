@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using PictureApp.API.Dtos;
-using PictureApp.API.Models;
 
-namespace PictureApp_API.Services
+namespace PictureApp.API.Services
 {
     public interface IUserService
     {

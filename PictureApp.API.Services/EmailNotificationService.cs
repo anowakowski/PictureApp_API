@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
+using System.Threading.Tasks;
 using MoreLinq.Extensions;
-using PictureApp.API.Data.Repository;
-using PictureApp.API.Exceptions;
+using PictureApp.API.Services.NotificationTemplateData;
+using PictureApp.API.Data.Repositories;
+using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
-using PictureApp.API.Services.NotificationTemplateData;
 
 namespace PictureApp.API.Services
 {
@@ -23,7 +24,7 @@ namespace PictureApp.API.Services
             _emailClientProvider = emailClientProvider ?? throw new ArgumentNullException(nameof(emailClientProvider));
         }
 
-        public async void SendAsync(string recipient, INotificationTemplateData templateData)
+        public async Task SendAsync(string recipient, INotificationTemplateData templateData)
         {
             // Attempt to get the template identified by an abbreviation
             var notificationTemplate = _repository.Find(x => x.Abbreviation == templateData.TemplateAbbreviation)

@@ -12,6 +12,10 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
+  </ItemGroup>
+
   <!--
   <ItemGroup>
     <ProjectReference Include="..\PictureApp.API\PictureApp.API.csproj" />
