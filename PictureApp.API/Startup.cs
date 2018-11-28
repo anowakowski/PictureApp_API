@@ -43,6 +43,7 @@ namespace PictureApp.API
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFollowerService, FollowerService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -22,6 +22,9 @@ namespace PictureApp.API.Data.Repositories
         Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
 
         Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
+
+        Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, object>>[] includeEntities, 
+            Expression<Func<TEntity, bool>> predicate);
    }
 
 }

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Services;
 
 namespace PictureApp.API.Controllers
@@ -34,14 +35,22 @@ namespace PictureApp.API.Controllers
 
                 return Ok();
             }
-            catch (AuthenticationException)
+            catch (NotAuthorizedException)
             {
                 return Unauthorized();
             }
-            catch (Exception ex)
+            catch (EntityNotFoundException ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet("nonfollowers")]
+        public async Task<IActionResult> GetUnFollowedUsers(int userId)
+        {
+            var result = await _followerService.GetUnFollowedUsers(userId);
+
+            return Ok();
         }
     }
 }
