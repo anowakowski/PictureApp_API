@@ -51,9 +51,20 @@ namespace PictureApp.API.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Unauthorized();
 
-            await Task.Run(() => _followerService.SetUpUnfollower(userId, id));
+            try 
+            {
+                await Task.Run(() => _followerService.SetUpUnfollower(userId, id));
 
-            return Ok();
+                return Ok();
+            }
+            catch (NotAuthorizedException)
+            {
+                return Unauthorized();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }            
         }
 
         [HttpGet("allUserWithFollowerInfo")]

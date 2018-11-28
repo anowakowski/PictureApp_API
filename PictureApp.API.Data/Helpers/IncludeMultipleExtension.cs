@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
-namespace PictureApp.API.Data
+namespace PictureApp.API.Data.Helpers
 {
     public static class IncludeMultipleExtension
     {
