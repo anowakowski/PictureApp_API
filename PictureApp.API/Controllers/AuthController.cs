@@ -1,17 +1,8 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using PictureApp.API.Data.Repository;
 using PictureApp.API.Dtos;
-using PictureApp.API.Exceptions;
-using PictureApp.API.Models;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
 

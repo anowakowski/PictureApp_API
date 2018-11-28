@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace PictureApp.API.Helpers
 {
-    public static class Extensions
+    public static class HttpResponseExtensions
     {
         public static void AddApplicationError(this HttpResponse response, string message)
         {

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="morelinq" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Data\PictureApp.API.Data.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Dtos\PictureApp.API.Dtos.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Extensions\PictureApp.API.Extensions.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Models\PictureApp.API.Models.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Providers\PictureApp.API.Providers.csproj" />
+  </ItemGroup>
+
+</Project>
