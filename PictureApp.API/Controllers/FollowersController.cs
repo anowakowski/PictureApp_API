@@ -45,6 +45,17 @@ namespace PictureApp.API.Controllers
             }
         }
 
+        [HttpPost("{id}/setunfollow")]
+        public async Task<IActionResult> SetUpUnFollow(int userId, int id)
+        {
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return Unauthorized();
+
+            await Task.Run(() => _followerService.SetUpUnfollower(userId, id));
+
+            return Ok();
+        }
+
         [HttpGet("allUserWithFollowerInfo")]
         public async Task<IActionResult> GetUnFollowedUsers(int userId)
         {
