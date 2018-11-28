@@ -45,12 +45,10 @@ namespace PictureApp.API.Controllers
             }
         }
 
-        [HttpGet("nonfollowers")]
+        [HttpGet("allUserWithFollowerInfo")]
         public async Task<IActionResult> GetUnFollowedUsers(int userId)
         {
-            var result = await _followerService.GetUnFollowedUsers(userId);
-
-            return Ok();
+            return Ok(await _followerService.GetAllWithFollowers(userId));
         }
     }
 }

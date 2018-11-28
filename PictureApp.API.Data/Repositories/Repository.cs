@@ -67,5 +67,15 @@ namespace PictureApp.API.Data.Repositories
             
             return await query.Where(predicate).ToListAsync();
         }
+
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        {
+            return await DbSet.ToListAsync();
+        }
+
+        public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await DbSet.Where(predicate).ToListAsync();
+        }
     }
 }

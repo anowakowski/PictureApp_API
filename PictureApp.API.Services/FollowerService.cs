@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using AutoMapper;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
@@ -17,23 +20,37 @@ namespace PictureApp.API.Services
         private readonly IRepository<UserFollower> _repository;
         private readonly IRepository<User> _userRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public FollowerService(IUserService userService, IRepository<UserFollower> repository, IRepository<User> userRepository, IUnitOfWork unitOfWork)
+        public FollowerService(
+            IUserService userService,
+            IRepository<UserFollower> repository, 
+            IRepository<User> userRepository, 
+            IUnitOfWork unitOfWork, 
+            IMapper mapper)
         {
             _userService = userService;
             _repository = repository;
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<UsersListForDiscoverDto> GetUnFollowedUsers(int userId)
+        public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId)
         {   
-            var user = await _userRepository.SingleAsync(u => u.Id == userId);
+            var usersFollower = await _repository.FindAsync(x => x.FollowerId == userId);
+            var users = await _userRepository.GetAllAsync();
 
-            Expression<Func<User, object>>[] includedEntites = {x => x.Followers, x => x.Following};
-            var test = await _userRepository.FindAsyncWithIncludedEntities(includedEntites, u => u.Id == userId);
-        
-            return new UsersListForDiscoverDto();
+            var usersWithFollowersToReturn = users.Select(user => 
+                {
+                    var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
+                    
+                    mappedUser.IsFollowerForCurrentUser = usersFollower.Any(userFollower => userFollower.FolloweeId == user.Id);
+     
+                    return mappedUser;
+                }).ToList();
+            
+            return usersWithFollowersToReturn;
         }
 
         public async Task SetUpFollower(int userId, int recipientId)
