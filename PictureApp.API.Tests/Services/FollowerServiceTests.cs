@@ -7,6 +7,9 @@ using PictureApp.API.Models;
 using PictureApp.API.Data;
 using AutoMapper;
 using FluentAssertions;
+using PictureApp.API.Dtos;
+using System.Threading.Tasks;
+using PictureApp.API.Extensions.Exceptions;
 
 namespace PictureApp.API.Tests.Services
 {
@@ -51,9 +54,11 @@ namespace PictureApp.API.Tests.Services
         }
         
         [Test]
-        public void SetUpFollower_WhenCalledWithUnknowUser_AuthenticationException()
+        public void SetUpFollower_WhenCalledWithUnknowUser_EntityNotFoundExceptionExpected()
         {
             var userService = Substitute.For<IUserService>();
+            userService.GetUser(Arg.Any<int>()).Returns(new UserForDetailedDto());
+
             var userFollowerRepository = Substitute.For<IRepository<UserFollower>>();
             var userRepository = Substitute.For<IRepository<User>>();
             var unitOfWork = Substitute.For<IUnitOfWork>();
@@ -61,8 +66,9 @@ namespace PictureApp.API.Tests.Services
 
             var service = new FollowerService(userService, userFollowerRepository, userRepository, unitOfWork, mapper);
 
+            Func<Task> action = async () => await service.SetUpFollower(userId: 1, recipientId: 2);
 
-
+            action.Should().Throw<EntityNotFoundException>().WithMessage("");
         }
                                   
     }
