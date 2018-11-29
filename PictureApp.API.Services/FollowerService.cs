@@ -17,28 +17,28 @@ namespace PictureApp.API.Services
     public class FollowerService : IFollowerService
     {
         private readonly IUserService _userService;
-        private readonly IRepository<UserFollower> _repository;
+        private readonly IRepository<UserFollower> _userFollowerRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public FollowerService(
             IUserService userService,
-            IRepository<UserFollower> repository, 
+            IRepository<UserFollower> userFollowerRepository, 
             IRepository<User> userRepository, 
             IUnitOfWork unitOfWork, 
             IMapper mapper)
         {
-            _userService = userService;
-            _repository = repository;
-            _userRepository = userRepository;
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userFollowerRepository = userFollowerRepository ?? throw new ArgumentNullException(nameof(userFollowerRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId)
         {   
-            var usersFollower = await _repository.FindAsync(x => x.FollowerId == userId);
+            var usersFollower = await _userFollowerRepository.FindAsync(x => x.FollowerId == userId);
             var users = await _userRepository.GetAllAsync();
 
             var usersWithFollowersToReturn = users.Select(user => 
@@ -57,7 +57,7 @@ namespace PictureApp.API.Services
         {
             await ValidateUser(userId, recipientId);
 
-            if (!await _repository.AnyAsync(
+            if (!await _userFollowerRepository.AnyAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId))
             {
                 var follower = new UserFollower
@@ -66,7 +66,7 @@ namespace PictureApp.API.Services
                     FolloweeId = recipientId
                 };
 
-                await _repository.AddAsync(follower);
+                await _userFollowerRepository.AddAsync(follower);
                 await _unitOfWork.CompleteAsync();
             }
             else 
@@ -79,12 +79,12 @@ namespace PictureApp.API.Services
         {
             await ValidateUser(userId, recipientId);
 
-            var userFollower = await _repository.FirstOrDefaultAsync(
+            var userFollower = await _userFollowerRepository.FirstOrDefaultAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId);
 
             if (userFollower != null)
             {
-                _repository.Delete(userFollower);
+                _userFollowerRepository.Delete(userFollower);
                 await _unitOfWork.CompleteAsync();
             }
             else
