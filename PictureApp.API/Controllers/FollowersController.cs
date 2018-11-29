@@ -14,12 +14,12 @@ namespace PictureApp.API.Controllers
     [ApiController]
     public class FollowersController : ControllerBase
     {
-        private readonly IUserService userService;
+        private readonly IUserService _userService;
         private readonly IFollowerService _followerService;
 
         public FollowersController(IUserService userService, IFollowerService followerService)
         {
-            this.userService = userService;
+            _userService = userService;
             _followerService = followerService;
         }
 
@@ -35,13 +35,9 @@ namespace PictureApp.API.Controllers
 
                 return Ok();
             }
-            catch (NotAuthorizedException)
+            catch (EntityNotFoundException)
             {
-                return Unauthorized();
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return BadRequest(ex.Message);
+                return BadRequest("Can't set up follower");
             }
         }
 
@@ -57,13 +53,9 @@ namespace PictureApp.API.Controllers
 
                 return Ok();
             }
-            catch (NotAuthorizedException)
+            catch (EntityNotFoundException)
             {
-                return Unauthorized();
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return BadRequest(ex.Message);
+                return BadRequest("Can't unfollow that user");
             }            
         }
 

@@ -99,7 +99,7 @@ namespace PictureApp.API.Services
             var recpitent = await _userService.GetUser(recipientId);
 
             if (user == null)
-                throw new NotAuthorizedException($"user by {userId} not found");
+                throw new EntityNotFoundException($"user by {userId} not found");
             if (recpitent == null)
                 throw new EntityNotFoundException($"recpitent by id {recipientId} not found");
         }
