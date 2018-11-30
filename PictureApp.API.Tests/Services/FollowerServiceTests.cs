@@ -54,7 +54,8 @@ namespace PictureApp.API.Tests.Services
 
             action.Should().Throw<ArgumentNullException>();                
         }
-
+        
+        /*
         [Test]
         public void SetUpFollower_WhenCalledCorrect_ShouldCallFollowRepositoryAddAndSave()
         {
@@ -72,6 +73,7 @@ namespace PictureApp.API.Tests.Services
             Action action = async () => await service.SetUpFollower(1, 2);
 
             userFollowerRepository.Received().AddAsync(Arg.Any<UserFollower>());
-        }    
+        }  
+         */  
     }
 }
