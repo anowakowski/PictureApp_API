@@ -22,7 +22,9 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
-        }        
+        }
+        
+                
         
     }
 }
