@@ -23,9 +23,9 @@ namespace PictureApp.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        public Task<IActionResult> GetUser(int id)
         {
-            return Ok(await _userService.GetUser(id));
+            return Ok(_userService.GetUser(id));
         }
     }
 }
