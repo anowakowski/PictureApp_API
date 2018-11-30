@@ -19,7 +19,6 @@ namespace PictureApp.API.Controllers
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            ;
         }
 
         [HttpGet("{id}")]
