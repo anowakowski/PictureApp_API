@@ -66,9 +66,11 @@ namespace PictureApp.API.Tests.Services
 
             var service = new FollowerService(userService, userFollowerRepository, userRepository, unitOfWork, mapper);
 
-            Func<Task> action = async () => await service.SetUpFollower(userId: 1, recipientId: 2);
+            var userId = 1;
+            var recipientId = 2;
 
-            action.Should().Throw<EntityNotFoundException>().WithMessage("");
+            Func<Task> action = async () => await service.SetUpFollower(userId, recipientId);
+            action.Should().Throw<EntityNotFoundException>().WithMessage($"user by {userId} not found");
         }
                                   
     }
