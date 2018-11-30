@@ -55,7 +55,8 @@ namespace PictureApp.API.Services
 
         public async Task SetUpFollower(int userId, int recipientId)
         {
-            await ValidateUser(userId, recipientId);
+            await _userService.GetUser(userId);
+            await _userService.GetUser(recipientId);
 
             if (!await _userFollowerRepository.AnyAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId))
@@ -77,7 +78,8 @@ namespace PictureApp.API.Services
 
         public async Task SetUpUnfollower(int userId, int recipientId)
         {
-            await ValidateUser(userId, recipientId);
+            await _userService.GetUser(userId);
+            await _userService.GetUser(recipientId);
 
             var userFollower = await _userFollowerRepository.FirstOrDefaultAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId);
@@ -91,17 +93,6 @@ namespace PictureApp.API.Services
             {
                 ////log if user arleady unfollow choosen recipient
             }
-        }
-
-        private async Task ValidateUser(int userId, int recipientId)
-        {
-            var user = await _userService.GetUser(userId);
-            var recpitent = await _userService.GetUser(recipientId);
-
-            if (user == null)
-                throw new EntityNotFoundException($"user by {userId} not found");
-            if (recpitent == null)
-                throw new EntityNotFoundException($"recpitent by id {recipientId} not found");
         }
     }
 }

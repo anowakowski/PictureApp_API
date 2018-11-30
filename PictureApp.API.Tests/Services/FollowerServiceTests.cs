@@ -10,6 +10,8 @@ using FluentAssertions;
 using PictureApp.API.Dtos;
 using System.Threading.Tasks;
 using PictureApp.API.Extensions.Exceptions;
+using System.Linq.Expressions;
+using System.Collections.Generic;
 
 namespace PictureApp.API.Tests.Services
 {
@@ -52,23 +54,24 @@ namespace PictureApp.API.Tests.Services
 
             action.Should().Throw<ArgumentNullException>();                
         }
-        
+
         [Test]
-        public void SetUpFollower_WhenCalledWithUnknowUser_EntityNotFoundExceptionExpected()
+        public void SetUpFollower_WhenCalledCorrect_ShouldCallFollowRepositoryAddAndSave()
         {
             var userService = Substitute.For<IUserService>();
             var userFollowerRepository = Substitute.For<IRepository<UserFollower>>();
+
+            userFollowerRepository.AnyAsync(Arg.Any<Expression<Func<UserFollower, bool>>>()).Returns(false);
+
             var userRepository = Substitute.For<IRepository<User>>();
             var unitOfWork = Substitute.For<IUnitOfWork>();
             var mapper = Substitute.For<IMapper>();
 
             var service = new FollowerService(userService, userFollowerRepository, userRepository, unitOfWork, mapper);
 
-            var userId = 1;
-            var recipientId = 2;
+            Action action = async () => await service.SetUpFollower(1, 2);
 
-            Func<Task> action = async () => await service.SetUpFollower(userId, recipientId);
-            action.Should().Throw<EntityNotFoundException>().WithMessage($"user by {userId} not found");
-        }
+            userFollowerRepository.Received().AddAsync(Arg.Any<UserFollower>());
+        }    
     }
 }
