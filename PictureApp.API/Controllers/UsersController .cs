@@ -23,7 +23,7 @@ namespace PictureApp.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public Task<IActionResult> GetUser(int id)
+        public IActionResult GetUser(int id)
         {
             return Ok(_userService.GetUser(id));
         }
