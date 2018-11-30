@@ -70,10 +70,6 @@ namespace PictureApp.API.Services
                 await _userFollowerRepository.AddAsync(follower);
                 await _unitOfWork.CompleteAsync();
             }
-            else 
-            {
-                ////log if user arleady follow choosen recipient
-            }
         }
 
         public async Task SetUpUnfollower(int userId, int recipientId)
@@ -88,10 +84,6 @@ namespace PictureApp.API.Services
             {
                 _userFollowerRepository.Delete(userFollower);
                 await _unitOfWork.CompleteAsync();
-            }
-            else
-            {
-                ////log if user arleady unfollow choosen recipient
             }
         }
     }
