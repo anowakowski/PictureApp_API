@@ -57,8 +57,6 @@ namespace PictureApp.API.Tests.Services
         public void SetUpFollower_WhenCalledWithUnknowUser_EntityNotFoundExceptionExpected()
         {
             var userService = Substitute.For<IUserService>();
-            userService.GetUser(Arg.Any<int>()).Returns(new UserForDetailedDto());
-
             var userFollowerRepository = Substitute.For<IRepository<UserFollower>>();
             var userRepository = Substitute.For<IRepository<User>>();
             var unitOfWork = Substitute.For<IUnitOfWork>();
@@ -72,6 +70,5 @@ namespace PictureApp.API.Tests.Services
             Func<Task> action = async () => await service.SetUpFollower(userId, recipientId);
             action.Should().Throw<EntityNotFoundException>().WithMessage($"user by {userId} not found");
         }
-                                  
     }
 }
