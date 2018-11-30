@@ -7,11 +7,12 @@ using PictureApp.API.Models;
 using PictureApp.API.Data;
 using AutoMapper;
 using FluentAssertions;
-using PictureApp.API.Dtos;
 using System.Threading.Tasks;
-using PictureApp.API.Extensions.Exceptions;
 using System.Linq.Expressions;
 using System.Collections.Generic;
+using PictureApp.API.Providers;
+using PictureApp.API.Extensions.Exceptions;
+using PictureApp.API.Services.NotificationTemplateData;
 
 namespace PictureApp.API.Tests.Services
 {
@@ -22,58 +23,58 @@ namespace PictureApp.API.Tests.Services
         [Test]
         public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
         {
-            Action acttion = () => new FollowerService(null, Substitute.For<IRepository<UserFollower>>(), 
+            Action acttion = () => new FollowerService(null, Substitute.For<IRepository<UserFollower>>(),
                 Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
-            acttion.Should().Throw<ArgumentNullException>();                
+            acttion.Should().Throw<ArgumentNullException>();
         }
 
         [Test]
         public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
         {
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), null, 
+            Action action = () => new FollowerService(Substitute.For<IUserService>(), null,
                 Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
-            action.Should().Throw<ArgumentNullException>();                
-        }  
+            action.Should().Throw<ArgumentNullException>();
+        }
 
         [Test]
         public void Ctor_WhenCalledWithNullThirdDependency_ArgumentNullExceptionExpected()
         {
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(), 
+            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
                 null, Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
-            action.Should().Throw<ArgumentNullException>();                
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Test]
         public void Ctor_WhenCalledWithNullFourthDependency_ArgumentNullExceptionExpected()
         {
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(), 
+            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
                 Substitute.For<IRepository<User>>(), null, Substitute.For<IMapper>());
 
-            action.Should().Throw<ArgumentNullException>();                
+            action.Should().Throw<ArgumentNullException>();
         }
-        
-        /*
+
         [Test]
-        public void SetUpFollower_WhenCalledCorrect_ShouldCallFollowRepositoryAddAndSave()
+        public void SetUpFollower_WhenCalledCorrectUser_ShouldAddEntityToRepository()
         {
-            var userService = Substitute.For<IUserService>();
-            var userFollowerRepository = Substitute.For<IRepository<UserFollower>>();
+            // ARRANGE
+            var userFollowerRepo = Substitute.For<IRepository<UserFollower>>();
+            userFollowerRepo.AnyAsync(Arg.Any<Expression<Func<UserFollower, bool>>>()).Returns(false);
 
-            userFollowerRepository.AnyAsync(Arg.Any<Expression<Func<UserFollower, bool>>>()).Returns(false);
+            var service = new FollowerService(Substitute.For<IUserService>(), userFollowerRepo,
+                Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
-            var userRepository = Substitute.For<IRepository<User>>();
-            var unitOfWork = Substitute.For<IUnitOfWork>();
-            var mapper = Substitute.For<IMapper>();
+            // ACT
+            var userId = 1;
+            var reciptientId = 2;
 
-            var service = new FollowerService(userService, userFollowerRepository, userRepository, unitOfWork, mapper);
+            Func<Task> action = async () => await service.SetUpFollower(userId, reciptientId);
 
-            Action action = async () => await service.SetUpFollower(1, 2);
-
-            userFollowerRepository.Received().AddAsync(Arg.Any<UserFollower>());
-        }  
-         */  
+            // ASSERT
+            action.Should().NotThrow<EntityNotFoundException>();
+            userFollowerRepo.Received().AddAsync(Arg.Any<UserFollower>());
+        }
     }
 }
