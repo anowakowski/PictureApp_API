@@ -9,5 +9,8 @@ namespace PictureApp.API.Models
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
         public ICollection<Photo> Photos { get; set; }
+        public ICollection<UserFollower> Followers { get; set; }
+        public ICollection<UserFollower> Following { get; set; }        
+        
     }
 }
