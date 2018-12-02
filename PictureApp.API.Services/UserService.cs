@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 
 namespace PictureApp.API.Services
@@ -18,9 +20,13 @@ namespace PictureApp.API.Services
             _repository = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
         }
 
-        public async Task<UserForDetailedDto> GetUser(int userId)
+        public UserForDetailedDto GetUser(int userId)
         {
-            var user = await _repository.GetById(userId);
+            var user = _repository.Find(u => u.Id == userId).FirstOrDefault();
+
+            if (user == null)
+                throw new EntityNotFoundException($"user by id {userId} not found");
+                
             return _mapper.Map<UserForDetailedDto>(user);
         }
     }
