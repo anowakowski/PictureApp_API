@@ -19,13 +19,12 @@ namespace PictureApp.API.Controllers
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            ;
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        public IActionResult GetUser(int id)
         {
-            return Ok(await _userService.GetUser(id));
+            return Ok(_userService.GetUser(id));
         }
     }
 }
