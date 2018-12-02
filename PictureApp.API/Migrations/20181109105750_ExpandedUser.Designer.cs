@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using PictureApp.API.Data;
+using PictureApp.API.DatabaseContext;
 
 namespace PictureApp.API.Migrations
 {

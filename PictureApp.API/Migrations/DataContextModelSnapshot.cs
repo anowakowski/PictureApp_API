@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PictureApp.API.Data;
+using PictureApp.API.DatabaseContext;
 
 namespace PictureApp.API.Migrations
 {
