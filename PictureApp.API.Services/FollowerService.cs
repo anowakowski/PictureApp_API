@@ -55,11 +55,13 @@ namespace PictureApp.API.Services
 
         public async Task SetUpFollower(int userId, int recipientId)
         {
-            await _userService.GetUser(userId);
-            await _userService.GetUser(recipientId);
+            var findedUser = _userService.GetUser(userId);
+            var findedFollower = _userService.GetUser(recipientId);
 
-            if (!await _userFollowerRepository.AnyAsync(
-                u => u.FollowerId == userId && u.FolloweeId == recipientId))
+            if (findedUser != null && 
+                findedUser != null && 
+                !await _userFollowerRepository.AnyAsync(
+                    u => u.FollowerId == userId && u.FolloweeId == recipientId))
             {
                 var follower = new UserFollower
                 {
@@ -74,13 +76,13 @@ namespace PictureApp.API.Services
 
         public async Task SetUpUnfollower(int userId, int recipientId)
         {
-            await _userService.GetUser(userId);
-            await _userService.GetUser(recipientId);
+            var findedUser = _userService.GetUser(userId);
+            var findedFollower = _userService.GetUser(recipientId);
 
             var userFollower = await _userFollowerRepository.FirstOrDefaultAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId);
 
-            if (userFollower != null)
+            if (findedUser != null && findedFollower != null && userFollower != null)
             {
                 _userFollowerRepository.Delete(userFollower);
                 await _unitOfWork.CompleteAsync();

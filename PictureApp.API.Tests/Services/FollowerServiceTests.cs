@@ -62,6 +62,17 @@ namespace PictureApp.API.Tests.Services
         }
 
         [Test]
+        public void Ctor_WhenCalledWithNullFifthDependency_ArgumentNullExceptionExpected()
+        {
+            // ARRANGE
+            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
+                Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), null);
+
+            // ACT ASSERT
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Test]
         public void SetUpFollower_WhenCalledNonExistsRelationByUserAndFollower_ShouldAddUserFollowerEntityToRepository()
         {
             // ARRANGE
@@ -69,8 +80,10 @@ namespace PictureApp.API.Tests.Services
             userFollowerRepo.AnyAsync(Arg.Any<Expression<Func<UserFollower, bool>>>()).Returns(false);
 
             var unitOfWork = Substitute.For<IUnitOfWork>();
+            var userService = Substitute.For<IUserService>();
+            userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
 
-            var service = new FollowerService(Substitute.For<IUserService>(), userFollowerRepo,
+            var service = new FollowerService(userService, userFollowerRepo,
                 Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
 
             // ACT
@@ -118,8 +131,10 @@ namespace PictureApp.API.Tests.Services
             userFollowerRepo.FirstOrDefaultAsync(Arg.Any<Expression<Func<UserFollower, bool>>>()).Returns(new UserFollower());
 
             var unitOfWork = Substitute.For<IUnitOfWork>();
+            var userService = Substitute.For<IUserService>();
+            userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
 
-            var service = new FollowerService(Substitute.For<IUserService>(), userFollowerRepo,
+            var service = new FollowerService(userService, userFollowerRepo,
                 Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
 
             // ACT

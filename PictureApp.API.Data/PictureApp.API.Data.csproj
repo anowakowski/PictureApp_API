@@ -17,5 +17,6 @@
 
   <ItemGroup>
     <Compile Remove="DataContext.cs" />
+    <Compile Remove="DataContext.cs" />
   </ItemGroup>
 </Project>
