@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
+using PictureApp.API.DatabaseContext;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
