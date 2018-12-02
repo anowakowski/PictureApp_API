@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data;
@@ -7,20 +6,29 @@ using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
+using PictureApp.API.Providers;
 
 namespace PictureApp.API.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IRepository<User> _repository;
+        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IActivationTokenProvider _activationTokenProvider;
 
-        public AuthService(IRepository<User> repository, IUnitOfWork unitOfWork, IMapper mapper)
+        public AuthService(IRepository<User> userRepository,
+            IRepository<AccountActivationToken> accountActivationTokenRepository, IUnitOfWork unitOfWork,
+            IMapper mapper, IActivationTokenProvider activationTokenProvider)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _accountActivationTokenRepository = accountActivationTokenRepository ??
+                                                throw new ArgumentNullException(
+                                                    nameof(accountActivationTokenRepository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)); 
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _activationTokenProvider = activationTokenProvider ?? throw new ArgumentNullException(nameof(activationTokenProvider));
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
@@ -33,8 +41,34 @@ namespace PictureApp.API.Services
             var userToCreate = _mapper.Map<User>(userForRegister);
             userToCreate.PasswordHash = passwordHash;
             userToCreate.PasswordSalt = passwordSalt;
-            
-            await _repository.AddAsync(userToCreate);
+            var activationToken = new AccountActivationToken
+            {
+                Token = _activationTokenProvider.CreateToken()
+            };
+            userToCreate.ActivationToken = activationToken;
+
+            await _userRepository.AddAsync(userToCreate);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public Task ReRegister(string email)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public async Task Activate(string token)
+        {
+            if (_activationTokenProvider.IsTokenExpired(token))
+            {
+                throw new ArgumentException("Given token is already expired");
+            }
+
+            var activationToken = await _accountActivationTokenRepository.SingleAsync(x => x.Token == token);
+            var user = await _userRepository.SingleAsync(x => x.Id == activationToken.UserId);
+
+            user.IsAccountActivated = true;
+            _accountActivationTokenRepository.Delete(activationToken);
+
             await _unitOfWork.CompleteAsync();
         }
 
@@ -45,7 +79,7 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
             }
 
-            var userFromRepo = await _repository.SingleAsync(x => x.Email == email);
+            var userFromRepo = await _userRepository.SingleAsync(x => x.Email == email);
 
             if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
             {
@@ -57,7 +91,7 @@ namespace PictureApp.API.Services
 
         public async Task<bool> UserExists(string email)
         {
-            return await _repository.AnyAsync(x => x.Email == email.ToLower());
+            return await _userRepository.AnyAsync(x => x.Email == email.ToLower());
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -83,12 +117,5 @@ namespace PictureApp.API.Services
 
             return true;
         }
-
-        private User GetUser(string email)
-        {
-            var users = _repository.Find(x => x.Email == email.ToLower());
-            return users.Single();
-        }
-
     }
 }
