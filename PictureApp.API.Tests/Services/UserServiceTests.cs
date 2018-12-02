@@ -19,10 +19,20 @@ namespace PictureApp.API.Tests.Services
     public class UserServiceTests
     {
         [Test]
-        public void Ctor_WhenCalledWithNullFirstDependencyForRepository_ArgumentNullExceptionExpected()
+        public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
         {
             // ARRANGE
             Action action = () => new UserService(null, Substitute.For<IMapper>());
+
+            // ACT & ASSERT
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Test]
+        public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
+        {
+            // ARRANGE
+            Action action = () => new UserService(Substitute.For<IRepository<User>>(), null);
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
