@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
-using PictureApp.API.DatabaseContext;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
@@ -33,7 +32,7 @@ namespace PictureApp.API
         {
             services.AddCors();
             services.AddAutoMapper();
-            services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(Startup).Namespace)));
             services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(opt =>
