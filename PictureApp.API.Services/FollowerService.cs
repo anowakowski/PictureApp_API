@@ -25,14 +25,12 @@ namespace PictureApp.API.Services
 
         public FollowerService(
             IUserService userService,
-            IRepository<UserFollower> userFollowerRepository, 
-            IRepository<User> userRepository, 
+            IRepository<UserFollower> userFollowerRepository,
             IUnitOfWork unitOfWork, 
             IMapper mapper)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userFollowerRepository = userFollowerRepository ?? throw new ArgumentNullException(nameof(userFollowerRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }

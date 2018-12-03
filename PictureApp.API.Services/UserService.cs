@@ -16,11 +16,11 @@ namespace PictureApp.API.Services
         private readonly IMapper _mapper;
         private readonly IFollowerService _followerService;
 
-        public UserService(IRepository<User> userRepo, IMapper mapper, IFollowerService followerService)
+        public UserService(IRepository<User> userRepo, IFollowerService followerService, IMapper mapper)
         {
-            this._followerService = followerService;
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _userRepository = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
+            _followerService = followerService ?? throw new ArgumentNullException(nameof(followerService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public UserForDetailedDto GetUser(int userId)

@@ -22,7 +22,7 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             Action acttion = () => new FollowerService(null, Substitute.For<IRepository<UserFollower>>(),
-                Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
+                Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
             // ACT ASSERT
             acttion.Should().Throw<ArgumentNullException>();
@@ -33,7 +33,7 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             Action action = () => new FollowerService(Substitute.For<IUserService>(), null,
-                Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
+                Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
 
             // ACT ASSERT
             action.Should().Throw<ArgumentNullException>();
@@ -44,7 +44,7 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
-                null, Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
+                 null, Substitute.For<IMapper>());
 
             // ACT ASSERT
             action.Should().Throw<ArgumentNullException>();
@@ -55,18 +55,7 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
-                Substitute.For<IRepository<User>>(), null, Substitute.For<IMapper>());
-
-            // ACT ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullFifthDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
-                Substitute.For<IRepository<User>>(), Substitute.For<IUnitOfWork>(), null);
+                Substitute.For<IUnitOfWork>(), null);
 
             // ACT ASSERT
             action.Should().Throw<ArgumentNullException>();
@@ -84,7 +73,7 @@ namespace PictureApp.API.Tests.Services
             userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
 
             var service = new FollowerService(userService, userFollowerRepo,
-                Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
+                unitOfWork, Substitute.For<IMapper>());
 
             // ACT
             var userId = 1;
@@ -109,7 +98,7 @@ namespace PictureApp.API.Tests.Services
             var unitOfWork = Substitute.For<IUnitOfWork>();
 
             var service = new FollowerService(Substitute.For<IUserService>(), userFollowerRepo,
-                Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
+                unitOfWork, Substitute.For<IMapper>());
 
             // ACT
             var userId = 1;
@@ -135,7 +124,7 @@ namespace PictureApp.API.Tests.Services
             userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
 
             var service = new FollowerService(userService, userFollowerRepo,
-                Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
+                unitOfWork, Substitute.For<IMapper>());
 
             // ACT
             var userId = 1;
@@ -160,7 +149,7 @@ namespace PictureApp.API.Tests.Services
             var unitOfWork = Substitute.For<IUnitOfWork>();
 
             var service = new FollowerService(Substitute.For<IUserService>(), userFollowerRepo,
-                Substitute.For<IRepository<User>>(), unitOfWork, Substitute.For<IMapper>());
+                unitOfWork, Substitute.For<IMapper>());
 
             // ACT
             var userId = 1;

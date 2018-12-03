@@ -62,7 +62,7 @@ namespace PictureApp.API.Controllers
         [HttpGet("allUserWithFollowerInfo")]
         public async Task<IActionResult> GetUnFollowedUsers(int userId)
         {
-            return Ok(await _followerService.GetAllWithFollowers(userId));
+            return Ok(await _userService.GetAllWithFollowers(userId));
         }
 
         private bool AuthorizeUser(int userId)
