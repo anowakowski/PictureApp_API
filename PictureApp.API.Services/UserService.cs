@@ -29,5 +29,22 @@ namespace PictureApp.API.Services
                 
             return _mapper.Map<UserForDetailedDto>(user);
         }
+
+        public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId)
+        {   
+            var usersFollower = await _userFollowerRepository.FindAsync(x => x.FollowerId == userId);
+            var users = await _userRepository.GetAllAsync();
+
+            var usersWithFollowersToReturn = users.Select(user => 
+                {
+                    var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
+                    
+                    mappedUser.IsFollowerForCurrentUser = usersFollower.Any(userFollower => userFollower.FolloweeId == user.Id);
+     
+                    return mappedUser;
+                }).ToList();
+            
+            return usersWithFollowersToReturn;
+        }
     }
 }
