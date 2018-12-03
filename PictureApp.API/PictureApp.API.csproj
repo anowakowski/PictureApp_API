@@ -3,6 +3,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20181202200737_AccountActivationTokenAndExtendUser.cs" />
+    <Compile Remove="Migrations\20181202200737_AccountActivationTokenAndExtendUser.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>

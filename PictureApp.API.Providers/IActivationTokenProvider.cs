@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PictureApp.API.Providers
+﻿namespace PictureApp.API.Providers
 {
     public interface IActivationTokenProvider
     {

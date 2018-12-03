@@ -13,7 +13,7 @@ namespace PictureApp.API.Migrations
                 defaultValue: false);
 
             migrationBuilder.CreateTable(
-                name: "AccountActivationToken",
+                name: "AccountActivationTokens",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -23,9 +23,9 @@ namespace PictureApp.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AccountActivationToken", x => x.Id);
+                    table.PrimaryKey("PK_AccountActivationTokens", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AccountActivationToken_Users_UserId",
+                        name: "FK_AccountActivationTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -33,8 +33,8 @@ namespace PictureApp.API.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AccountActivationToken_UserId",
-                table: "AccountActivationToken",
+                name: "IX_AccountActivationTokens_UserId",
+                table: "AccountActivationTokens",
                 column: "UserId",
                 unique: true);
         }
@@ -42,7 +42,7 @@ namespace PictureApp.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AccountActivationToken");
+                name: "AccountActivationTokens");
 
             migrationBuilder.DropColumn(
                 name: "IsAccountActivated",

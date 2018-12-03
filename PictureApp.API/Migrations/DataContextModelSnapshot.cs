@@ -30,7 +30,7 @@ namespace PictureApp.API.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("AccountActivationToken");
+                    b.ToTable("AccountActivationTokens");
                 });
 
             modelBuilder.Entity("PictureApp.API.Models.NotificationTemplate", b =>

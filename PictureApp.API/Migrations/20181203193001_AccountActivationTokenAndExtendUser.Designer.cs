@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PictureApp.API.DatabaseContext;
+using PictureApp.API.Data;
 
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20181202200737_AccountActivationTokenAndExtendUser")]
+    [Migration("20181203193001_AccountActivationTokenAndExtendUser")]
     partial class AccountActivationTokenAndExtendUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,7 +32,7 @@ namespace PictureApp.API.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("AccountActivationToken");
+                    b.ToTable("AccountActivationTokens");
                 });
 
             modelBuilder.Entity("PictureApp.API.Models.NotificationTemplate", b =>

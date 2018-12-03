@@ -51,11 +51,6 @@ namespace PictureApp.API.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public Task ReRegister(string email)
-        {
-            throw new NotImplementedException();
-        }
-        
         public async Task Activate(string token)
         {
             if (_activationTokenProvider.IsTokenExpired(token))
