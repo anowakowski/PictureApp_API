@@ -26,7 +26,7 @@ namespace PictureApp.API.Controllers
         [HttpPost("{id}/setfollow")]
         public async Task<IActionResult> SetUpFollower(int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (AuthorizeUser(userId))
                 return Unauthorized();
 
             try
@@ -44,7 +44,7 @@ namespace PictureApp.API.Controllers
         [HttpPost("{id}/setunfollow")]
         public async Task<IActionResult> SetUpUnFollow(int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (AuthorizeUser(userId))
                 return Unauthorized();
 
             try 
@@ -63,6 +63,14 @@ namespace PictureApp.API.Controllers
         public async Task<IActionResult> GetUnFollowedUsers(int userId)
         {
             return Ok(await _followerService.GetAllWithFollowers(userId));
+        }
+
+        private bool AuthorizeUser(int userId)
+        {
+            if (userId == int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                return true;
+
+            return false;
         }
     }
 }
