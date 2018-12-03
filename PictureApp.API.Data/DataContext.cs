@@ -10,5 +10,7 @@ namespace PictureApp.API.Data
         public DbSet<User> Users { get; set; }
 
         public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+
+        public DbSet<AccountActivationToken> AccountActivationTokens { get; set; }
     }
 }
