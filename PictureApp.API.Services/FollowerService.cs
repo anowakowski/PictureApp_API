@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -36,23 +37,6 @@ namespace PictureApp.API.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId)
-        {   
-            var usersFollower = await _userFollowerRepository.FindAsync(x => x.FollowerId == userId);
-            var users = await _userRepository.GetAllAsync();
-
-            var usersWithFollowersToReturn = users.Select(user => 
-                {
-                    var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
-                    
-                    mappedUser.IsFollowerForCurrentUser = usersFollower.Any(userFollower => userFollower.FolloweeId == user.Id);
-     
-                    return mappedUser;
-                }).ToList();
-            
-            return usersWithFollowersToReturn;
-        }
-
         public async Task SetUpFollower(int userId, int recipientId)
         {
             var findedUser = _userService.GetUser(userId);
@@ -87,6 +71,10 @@ namespace PictureApp.API.Services
                 _userFollowerRepository.Delete(userFollower);
                 await _unitOfWork.CompleteAsync();
             }
+        }
+        public async Task<IEnumerable<UserFollower>> GetFollowers(int userId)
+        {
+            return await _userFollowerRepository.FindAsync(x => x.FollowerId == userId);
         }
     }
 }

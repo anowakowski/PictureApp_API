@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PictureApp.API.Dtos;
+using PictureApp.API.Models;
 
 namespace PictureApp.API.Services
 {
@@ -8,6 +9,6 @@ namespace PictureApp.API.Services
     {
         Task SetUpFollower(int userId, int recipientId);
         Task SetUpUnfollower(int userId, int recipientId);
-        Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId);
+        Task<IEnumerable<UserFollower>> GetFollowers(int userId);
     }
 }
