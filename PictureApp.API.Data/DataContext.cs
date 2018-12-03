@@ -5,7 +5,7 @@ namespace PictureApp.API.Data
 {
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+        public DataContext(DbContextOptions<DataContext>  options) : base (options) {}
 
         public DbSet<User> Users { get; set; }
 
@@ -21,7 +21,7 @@ namespace PictureApp.API.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Following)
                 .WithOne(f => f.Followee)
-                .HasForeignKey(f => f.FolloweeId);                
+                .HasForeignKey(f => f.FolloweeId);
         }
     }
 }

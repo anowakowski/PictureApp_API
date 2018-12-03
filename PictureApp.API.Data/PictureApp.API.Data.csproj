@@ -15,8 +15,4 @@
     <ProjectReference Include="..\PictureApp.API.Models\PictureApp.API.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="DataContext.cs" />
-    <Compile Remove="DataContext.cs" />
-  </ItemGroup>
 </Project>
