@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
@@ -41,11 +42,7 @@ namespace PictureApp.API.Services
             var userToCreate = _mapper.Map<User>(userForRegister);
             userToCreate.PasswordHash = passwordHash;
             userToCreate.PasswordSalt = passwordSalt;
-            var activationToken = new AccountActivationToken
-            {
-                Token = _activationTokenProvider.CreateToken()
-            };
-            userToCreate.ActivationToken = activationToken;
+            userToCreate.ActivationToken = CreateActivationToken();
 
             await _userRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();
@@ -55,11 +52,16 @@ namespace PictureApp.API.Services
         {
             if (_activationTokenProvider.IsTokenExpired(token))
             {
-                throw new ArgumentException("Given token is already expired");
+                throw new SecurityTokenExpiredException("Given token is already expired");
             }
 
-            var activationToken = await _accountActivationTokenRepository.SingleAsync(x => x.Token == token);
-            var user = await _userRepository.SingleAsync(x => x.Id == activationToken.UserId);
+            var activationToken = await _accountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
+            if (activationToken == null)
+            {
+                throw new EntityNotFoundException($"Given token {token} does not exist in data store");
+            }
+
+            var user = await _userRepository.SingleOrDefaultAsync(x => x.Id == activationToken.UserId);
 
             user.IsAccountActivated = true;
             _accountActivationTokenRepository.Delete(activationToken);
@@ -69,24 +71,28 @@ namespace PictureApp.API.Services
 
         public async Task<UserLoggedInDto> Login(string email, string password)
         {
-            if (!await UserExists(email))
+            var user = await GetUser(email);
+            if (user == null)
             {
-                throw new EntityNotFoundException($"The user with email: {email} does not exist in datastore");
+                throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
             }
 
-            var userFromRepo = await _userRepository.SingleAsync(x => x.Email == email);
-
-            if (!VerifyPasswordHash(password, userFromRepo.PasswordHash, userFromRepo.PasswordSalt))
+            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
             {
                 throw new NotAuthorizedException($"The user: {email} password verification has been failed");
             }
 
-            return _mapper.Map<UserLoggedInDto>(userFromRepo);
+            return _mapper.Map<UserLoggedInDto>(user);
         }
 
         public async Task<bool> UserExists(string email)
         {
-            return await _userRepository.AnyAsync(x => x.Email == email.ToLower());
+            return await GetUser(email) != null;
+        }
+
+        private async Task<User> GetUser(string email)
+        {
+            return await _userRepository.SingleOrDefaultAsync(x => x.Email == email.ToLower());
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -96,6 +102,14 @@ namespace PictureApp.API.Services
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
+        }
+
+        private AccountActivationToken CreateActivationToken()
+        {
+            return new AccountActivationToken
+            {
+                Token = _activationTokenProvider.CreateToken()
+            };
         }
 
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
