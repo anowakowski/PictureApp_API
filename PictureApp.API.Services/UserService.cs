@@ -34,20 +34,23 @@ namespace PictureApp.API.Services
 
         public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int currentUserId)
         {
-            Expression<Func<User, object>>[] includes = {x => x.Followers, x => x.Following};
-            var users =  await _userRepository.FindAsyncWithIncludedEntities(includes);
+            Expression<Func<User, object>>[] includes = { x => x.Followers, x => x.Following };
+            var users = await _userRepository.FindAsyncWithIncludedEntities(includes);
 
-            var usersWithFollowersToReturn = users.Select(user =>
-                {
-                    var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
+            return PrepareUserDtoWithFollowers(users);
+        }
 
-                    mappedUser.IsFollowerForCurrentUser = user.Following.Any(x => x.FolloweeId == user.Id);
+        private IEnumerable<UsersListWithFollowersForExploreDto> PrepareUserDtoWithFollowers(IEnumerable<User> users)
+        {
+            return users.Select(user =>
+            {
+                var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
 
-                    return mappedUser;
+                mappedUser.IsFollowerForCurrentUser = user.Following.Any(x => x.FolloweeId == user.Id);
 
-                }).ToList();
+                return mappedUser;
 
-            return usersWithFollowersToReturn;
+            }).ToList();
         }
     }
 }
