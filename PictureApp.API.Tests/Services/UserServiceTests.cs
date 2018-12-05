@@ -45,7 +45,6 @@ namespace PictureApp.API.Tests.Services
             var repository = Substitute.For<IRepository<User>>();
             repository.Find(Arg.Any<Expression<Func<User, bool>>>()).Returns(new List<User>());
             var service = new UserService(repository,
-                Substitute.For<IFollowerService>(),
                 Substitute.For<IMapper>());
             var userId = 0;    
             Func<UserForDetailedDto> action = () => service.GetUser(userId);

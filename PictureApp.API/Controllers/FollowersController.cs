@@ -26,7 +26,7 @@ namespace PictureApp.API.Controllers
         [HttpPost("{id}/setfollow")]
         public async Task<IActionResult> SetUpFollower(int userId, int id)
         {
-            if (AuthorizeUser(userId))
+            if (!AuthorizeUser(userId))
                 return Unauthorized();
 
             try
@@ -44,7 +44,7 @@ namespace PictureApp.API.Controllers
         [HttpPost("{id}/setunfollow")]
         public async Task<IActionResult> SetUpUnFollow(int userId, int id)
         {
-            if (AuthorizeUser(userId))
+            if (!AuthorizeUser(userId))
                 return Unauthorized();
 
             try 

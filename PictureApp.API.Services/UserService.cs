@@ -41,7 +41,7 @@ namespace PictureApp.API.Services
                 {
                     var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
 
-                    mappedUser.IsFollowerForCurrentUser = user.Following.FirstOrDefault(x => x.Id == user.Id) != null;
+                    mappedUser.IsFollowerForCurrentUser = user.Following.Any(x => x.FolloweeId == user.Id);
 
                     return mappedUser;
 
