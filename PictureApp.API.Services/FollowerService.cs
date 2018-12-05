@@ -19,7 +19,6 @@ namespace PictureApp.API.Services
     {
         private readonly IUserService _userService;
         private readonly IRepository<UserFollower> _userFollowerRepository;
-        private readonly IRepository<User> _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 

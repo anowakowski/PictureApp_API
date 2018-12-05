@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
@@ -14,12 +15,10 @@ namespace PictureApp.API.Services
     {
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
-        private readonly IFollowerService _followerService;
 
-        public UserService(IRepository<User> userRepo, IFollowerService followerService, IMapper mapper)
+        public UserService(IRepository<User> userRepo, IMapper mapper)
         {
             _userRepository = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
-            _followerService = followerService ?? throw new ArgumentNullException(nameof(followerService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -33,18 +32,19 @@ namespace PictureApp.API.Services
             return _mapper.Map<UserForDetailedDto>(user);
         }
 
-        public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId)
+        public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int currentUserId)
         {
-            var usersFollower = await _followerService.GetFollowers(userId);
-            var users = await _userRepository.GetAllAsync();
+            Expression<Func<User, object>>[] includes = {x => x.Followers, x => x.Following};
+            var users =  await _userRepository.FindAsyncWithIncludedEntities(includes);
 
             var usersWithFollowersToReturn = users.Select(user =>
                 {
                     var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
 
-                    mappedUser.IsFollowerForCurrentUser = usersFollower.Any(userFollower => userFollower.FolloweeId == user.Id);
+                    mappedUser.IsFollowerForCurrentUser = user.Following.FirstOrDefault(x => x.Id == user.Id) != null;
 
                     return mappedUser;
+
                 }).ToList();
 
             return usersWithFollowersToReturn;

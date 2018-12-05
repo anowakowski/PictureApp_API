@@ -22,7 +22,7 @@ namespace PictureApp.API.Tests.Services
         public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
         {
             // ARRANGE
-            Action action = () => new UserService(null, Substitute.For<IFollowerService>(), Substitute.For<IMapper>());
+            Action action = () => new UserService(null, Substitute.For<IMapper>());
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
@@ -32,21 +32,11 @@ namespace PictureApp.API.Tests.Services
         public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
         {
             // ARRANGE
-            Action action = () => new UserService(Substitute.For<IRepository<User>>(), null, Substitute.For<IMapper>());
+            Action action = () => new UserService(Substitute.For<IRepository<User>>(), null);
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullThirdDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new UserService(Substitute.For<IRepository<User>>(), Substitute.For<IFollowerService>(), null);
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }        
+        }    
 
         [Test]
         public void GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
