@@ -3,6 +3,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20181202200737_AccountActivationTokenAndExtendUser.cs" />
+    <Compile Remove="Migrations\20181202200737_AccountActivationTokenAndExtendUser.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
@@ -10,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Data\PictureApp.API.Data.csproj" />
     <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
   </ItemGroup>
 </Project>

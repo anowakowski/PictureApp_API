@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Extensions\PictureApp.API.Extensions.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Providers\PictureApp.API.Providers.csproj" />
     <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
   </ItemGroup>
 
