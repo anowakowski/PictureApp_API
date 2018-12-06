@@ -36,21 +36,8 @@ namespace PictureApp.API.Services
         {
             var usersWithoutCurrentUser = await _userRepository.FindAsyncWithIncludedEntities(u => u.Id != currentUserId,
                 include => include.Followers, include => include.Following);
-                
-            return PrepareUserDtoWithFollowers(usersWithoutCurrentUser);
-        }
 
-        private IEnumerable<UsersListWithFollowersForExploreDto> PrepareUserDtoWithFollowers(IEnumerable<User> users)
-        {
-            return users.Select(user =>
-            {
-                var mappedUser = _mapper.Map<UsersListWithFollowersForExploreDto>(user);
-
-                mappedUser.IsFollowerForCurrentUser = user.Following.Any(x => x.FolloweeId == user.Id);
-
-                return mappedUser;
-
-            }).ToList();
+            return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
         }
     }
 }
