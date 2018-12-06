@@ -60,11 +60,10 @@ namespace PictureApp.API.Data.Repositories
             return await DbSet.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, object>>[] includeEntities, 
-            Expression<Func<TEntity, bool>> predicate = null)
+        public async Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeEntities)
         {
             var query = DbSet.IncludeMultiple(includeEntities);
-            
+
             return await query.Where(predicate).ToListAsync();
         }
 

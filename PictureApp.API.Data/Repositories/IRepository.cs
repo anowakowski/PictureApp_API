@@ -27,8 +27,7 @@ namespace PictureApp.API.Data.Repositories
 
         Task<IEnumerable<TEntity>> GetAllAsync();
 
-        Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, object>>[] includeEntities, 
-            Expression<Func<TEntity, bool>> predicate = null);
+        Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeEntities);
             
    }
 

@@ -34,9 +34,9 @@ namespace PictureApp.API.Services
 
         public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int currentUserId)
         {
-            Expression<Func<User, object>>[] includes = { x => x.Followers, x => x.Following };
-            var usersWithoutCurrentUser = await _userRepository.FindAsyncWithIncludedEntities(includes, x => x.Id != currentUserId);
-
+            var usersWithoutCurrentUser = await _userRepository.FindAsyncWithIncludedEntities(u => u.Id != currentUserId,
+                include => include.Followers, include => include.Following);
+                
             return PrepareUserDtoWithFollowers(usersWithoutCurrentUser);
         }
 
