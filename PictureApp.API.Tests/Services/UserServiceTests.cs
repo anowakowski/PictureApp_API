@@ -52,17 +52,5 @@ namespace PictureApp.API.Tests.Services
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");
         }  
-
-        [Test]
-        public void GetAllWithFollowers_WhenCalledWithAuthorizeUser_ShouldReturnUserWithFollowers()      
-        {
-            var service = new UserService(Substitute.For<IRepository<User>>(), Substitute.For<IMapper>());
-            var currentUserId = 1;
-            Func<IEnumerable<UsersListWithFollowersForExploreDto>> result;
-
-            Func<IEnumerable<UsersListWithFollowersForExploreDto>> action = async () => await service.GetAllWithFollowers(currentUserId);
-
-            action.Should().NotThrow<Exception>();
-        }
     }
 }
