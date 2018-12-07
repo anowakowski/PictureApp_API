@@ -11,6 +11,8 @@ namespace PictureApp.API.Data
 
         public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 
+        public DbSet<AccountActivationToken> AccountActivationTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -23,5 +25,6 @@ namespace PictureApp.API.Data
                 .WithOne(f => f.Followee)
                 .HasForeignKey(f => f.FolloweeId);                
         }
+
     }
 }

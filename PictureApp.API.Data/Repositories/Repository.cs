@@ -50,9 +50,9 @@ namespace PictureApp.API.Data.Repositories
             DbContext.Update(entity);
         }
 
-        public async Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate) 
+        public async Task<TEntity> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate) 
         {
-            return await DbSet.SingleAsync(predicate);
+            return await DbSet.SingleOrDefaultAsync(predicate);            
         }
 
         public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)

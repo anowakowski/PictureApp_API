@@ -42,6 +42,7 @@ namespace PictureApp.API
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });         
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
+            services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IFollowerService, FollowerService>();
