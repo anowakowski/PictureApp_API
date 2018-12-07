@@ -2,36 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PictureApp.API.Data;
 
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20181126212926_UserFollowers")]
+    partial class UserFollowers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
-
-            modelBuilder.Entity("PictureApp.API.Models.AccountActivationToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Token");
-
-                    b.Property<int>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("AccountActivationTokens");
-                });
+                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024");
 
             modelBuilder.Entity("PictureApp.API.Models.NotificationTemplate", b =>
                 {
@@ -84,8 +69,6 @@ namespace PictureApp.API.Migrations
 
                     b.Property<string>("Email");
 
-                    b.Property<bool>("IsAccountActivated");
-
                     b.Property<byte[]>("PasswordHash");
 
                     b.Property<byte[]>("PasswordSalt");
@@ -113,14 +96,6 @@ namespace PictureApp.API.Migrations
                     b.HasIndex("FollowerId");
 
                     b.ToTable("UserFollower");
-                });
-                    
-            modelBuilder.Entity("PictureApp.API.Models.AccountActivationToken", b =>
-                {
-                    b.HasOne("PictureApp.API.Models.User", "User")
-                        .WithOne("ActivationToken")
-                        .HasForeignKey("PictureApp.API.Models.AccountActivationToken", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("PictureApp.API.Models.Photo", b =>

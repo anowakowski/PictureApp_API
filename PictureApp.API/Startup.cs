@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
+using PictureApp.API.SeedData;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
@@ -44,6 +45,7 @@ namespace PictureApp.API
             services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IFollowerService, FollowerService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -57,10 +59,11 @@ namespace PictureApp.API
                         ValidateIssuer = false,
                         ValidateAudience = false
                     };
-                });           
+                });      
+            services.AddTransient<Seed>(); 
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)
         {
             if (env.IsDevelopment())
             {
@@ -83,6 +86,7 @@ namespace PictureApp.API
                     });
                 });
             }
+            //seed.SeedUsers();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();

@@ -36,7 +36,7 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
-        }
+        }    
 
         [Test]
         public void GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
@@ -51,6 +51,6 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");
-        }        
+        }  
     }
 }
