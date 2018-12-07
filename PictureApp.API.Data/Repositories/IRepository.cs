@@ -21,8 +21,6 @@ namespace PictureApp.API.Data.Repositories
 
         void Update(TEntity entity);
 
-        Task<TEntity> SingleAsync(Expression<Func<TEntity, bool>> predicate);
-
         Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
 
         Task<IEnumerable<TEntity>> GetAllAsync();
