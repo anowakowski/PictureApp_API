@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PictureApp.API.Dtos;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
+using PictureApp.API.Extensions.Exceptions;
 
 namespace PictureApp.API.Controllers
 {
@@ -39,20 +40,27 @@ namespace PictureApp.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login(UserForLoginDto userForLogin)
         {
-            var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
-
-            if (userForLoggedDto == null)
-                return Unauthorized();
-
-            var token = _jwtToken.GetToken(
-                new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
-                new Claim(ClaimTypes.Email, userForLoggedDto.Email),
-                new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
-
-            return Ok(new
+            try 
             {
-                token = token
-            });
+                var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
+
+                if (userForLoggedDto == null)
+                    return Unauthorized();
+
+                var token = _jwtToken.GetToken(
+                    new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
+                    new Claim(ClaimTypes.Email, userForLoggedDto.Email),
+                    new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
+
+                return Ok(new
+                {
+                    token = token
+                });                
+
+            } catch(EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }
