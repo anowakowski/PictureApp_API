@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PictureApp.API.Data.Helpers;
 using PictureApp.API.Models;
 using System;
 using System.Collections.Generic;
@@ -52,6 +53,28 @@ namespace PictureApp.API.Data.Repositories
         public async Task<TEntity> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate) 
         {
             return await DbSet.SingleOrDefaultAsync(predicate);            
+        }
+
+        public async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await DbSet.FirstOrDefaultAsync(predicate);
+        }
+
+        public async Task<IEnumerable<TEntity>> FindAsyncWithIncludedEntities(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeEntities)
+        {
+            var query = DbSet.IncludeMultiple(includeEntities);
+
+            return await query.Where(predicate).ToListAsync();
+        }
+
+        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        {
+            return await DbSet.ToListAsync();
+        }
+
+        public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await DbSet.Where(predicate).ToListAsync();
         }
     }
 }

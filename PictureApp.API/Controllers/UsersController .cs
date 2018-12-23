@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -26,5 +27,13 @@ namespace PictureApp.API.Controllers
         {
             return Ok(_userService.GetUser(id));
         }
+
+        [HttpGet("allUserWithFollowerInfo")]
+        public async Task<IActionResult> GetUsersWithFollowers()
+        {
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            return Ok(await _userService.GetAllWithFollowers(currentUserId));
+        }     
     }
 }

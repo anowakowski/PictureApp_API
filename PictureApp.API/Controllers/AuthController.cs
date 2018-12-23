@@ -76,20 +76,27 @@ namespace PictureApp.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login(UserForLoginDto userForLogin)
         {
-            var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
+            try 
+            {
+                var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
 
-            if (userForLoggedDto == null)
-                return Unauthorized();
+                if (userForLoggedDto == null)
+                    return Unauthorized();
 
             var token = _authTokenProvider.GetToken(
                 new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
                 new Claim(ClaimTypes.Email, userForLoggedDto.Email),
                 new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
 
-            return Ok(new
+                return Ok(new
+                {
+                    token = token
+                });                
+
+            } catch(EntityNotFoundException ex)
             {
-                token = token
-            });
+                return NotFound(ex.Message);
+            }
         }
     }
 }
