@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Net.Mail;
-using System.Threading.Tasks;
 using AutoMapper;
 using FluentAssertions;
 using NSubstitute;
@@ -51,6 +49,21 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");
-        }        
+        }
+
+        [Test]
+        public void GetUser_WhenCalledWithEmailThatIsNotAssociatedWithAnyUser_EntityNotFoundExceptionExpected()
+        {
+            // ARRANGE
+            var repository = Substitute.For<IRepository<User>>();
+            repository.Find(Arg.Any<Expression<Func<User, bool>>>()).Returns(new List<User>());
+            var service = new UserService(repository,
+                Substitute.For<IMapper>());
+            var userEmail = "name.surname@domain.com";
+            Func<UserForDetailedDto> action = () => service.GetUser(userEmail);
+
+            // ACT & ASSERT
+            action.Should().Throw<EntityNotFoundException>().WithMessage($"User identifies by email {userEmail} does not exist in data store");
+        }
     }
 }

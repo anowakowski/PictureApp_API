@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="mediatr" Version="5.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Data\PictureApp.API.Data.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Models\PictureApp.API.Models.csproj" />
+    <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
+    <ProjectReference Include="..\PictureApp.Notifications\PictureApp.Notifications.csproj" />
+  </ItemGroup>
+
+</Project>

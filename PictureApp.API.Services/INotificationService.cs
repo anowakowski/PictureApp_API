@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using PictureApp.API.Services.NotificationTemplateData;
+using PictureApp.Notifications;
 
 namespace PictureApp.API.Services
 {

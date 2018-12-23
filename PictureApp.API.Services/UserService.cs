@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
@@ -25,8 +24,22 @@ namespace PictureApp.API.Services
             var user = _repository.Find(u => u.Id == userId).FirstOrDefault();
 
             if (user == null)
+            {
                 throw new EntityNotFoundException($"user by id {userId} not found");
-                
+            }
+
+            return _mapper.Map<UserForDetailedDto>(user);
+        }
+
+        public UserForDetailedDto GetUser(string email)
+        {
+            var user = _repository.Find(u => u.Email == email.ToLower()).FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"User identifies by email {email} does not exist in data store");
+            }
+
             return _mapper.Map<UserForDetailedDto>(user);
         }
     }
