@@ -1,5 +1,7 @@
+using System.Reflection;
 using System.Text;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -16,6 +18,7 @@ using PictureApp.API.SeedData;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
+using PictureApp.Messaging;
 
 namespace PictureApp.API
 {
@@ -33,6 +36,7 @@ namespace PictureApp.API
         {
             services.AddCors();
             services.AddAutoMapper();
+            services.AddMediatR(typeof(UserRegisteredNotificationHandler).GetTypeInfo().Assembly);
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(Startup).Namespace)));
             services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -45,6 +49,9 @@ namespace PictureApp.API
             services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<INotificationService, EmailNotificationService>();
+            services.AddScoped<IEmailClientProvider, MailKitEmailClientProvider>();
+            services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
             services.AddScoped<IFollowerService, FollowerService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -65,6 +72,12 @@ namespace PictureApp.API
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)
         {
+            void Seed()
+            {
+                //seed.SeedUsers();
+                //seed.SeedNotificationTemplates();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -86,7 +99,8 @@ namespace PictureApp.API
                     });
                 });
             }
-            //seed.SeedUsers();
+
+            Seed();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseAuthentication();
             app.UseMvc();

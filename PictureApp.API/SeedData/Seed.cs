@@ -32,6 +32,21 @@ namespace PictureApp.API.SeedData
             context.SaveChanges();
         }
 
+        public void SeedNotificationTemplates()
+        {
+            var notificationTemplate = new NotificationTemplate
+            {
+                Name = "Activation of an account after registration",
+                Abbreviation = "ARR",
+                Description = "This template is using for notify users who has just registered their account and need a full activation.",
+                Body = "Dear user {UserName}, <br /> Here is your activation link: <a href=\"{ActivationUri}\">{ActivationUri}</a>.",
+                Subject = "Account activation"
+            };
+
+            context.Add(notificationTemplate);
+            context.SaveChanges();
+        }
+
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
@@ -39,7 +54,6 @@ namespace PictureApp.API.SeedData
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
-        }
-        
+        }               
     }
 }

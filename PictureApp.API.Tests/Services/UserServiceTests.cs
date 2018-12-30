@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using AutoMapper;
 using FluentAssertions;
+using Newtonsoft.Json;
 using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data.Repositories;
