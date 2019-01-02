@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PictureApp.API.Services.NotificationTemplateData
+namespace PictureApp.Notifications
 {
     public interface INotificationTemplateData
     {

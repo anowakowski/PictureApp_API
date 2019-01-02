@@ -12,7 +12,6 @@ namespace PictureApp.API.Models
         public bool IsAccountActivated { get; set; }
         public ICollection<Photo> Photos { get; set; }
         public ICollection<UserFollower> Followers { get; set; }
-        public ICollection<UserFollower> Following { get; set; }        
-        
+        public ICollection<UserFollower> Following { get; set; }
     }
 }
