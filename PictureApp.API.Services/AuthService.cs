@@ -48,6 +48,42 @@ namespace PictureApp.API.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task Reregister(UserForReregisterDto userForReregister)
+        {
+            if (userForReregister == null)
+            {
+                throw new ArgumentNullException(nameof(userForReregister));
+            }
+
+            var user = await _userRepository.SingleOrDefaultAsync(x => x.Email == userForReregister.Email.ToLower());
+            if (user == null)
+            {
+                throw new EntityNotFoundException(
+                    $"The user with email: {userForReregister.Email} does not exist in data store");
+            }
+
+            if (user.IsAccountActivated)
+            {
+                throw new NotAuthorizedException("The user account is already activated");
+            }
+
+            var currentActivationToken = await _accountActivationTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
+
+            var newActivationToken = CreateActivationToken();
+            if (currentActivationToken == null)
+            {
+                user.ActivationToken = newActivationToken;
+                _userRepository.Update(user);
+            }
+            else
+            {
+                currentActivationToken.Token = newActivationToken.Token;
+                _accountActivationTokenRepository.Update(currentActivationToken);
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+
         public async Task Activate(string token)
         {
             if (_activationTokenProvider.IsTokenExpired(token))

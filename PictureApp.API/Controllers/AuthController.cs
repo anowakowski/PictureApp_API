@@ -45,6 +45,28 @@ namespace PictureApp.API.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
+        [HttpPost("reregister")]
+        public async Task<IActionResult> Reregister(UserForReregisterDto userForReregister)
+        {
+            try
+            {
+                await Task.Run(() => _authService.Reregister(userForReregister));
+            }
+            catch (Exception ex)
+            {
+                if (ex is EntityNotFoundException || ex is NotAuthorizedException)
+                {
+                    return BadRequest("User does not exist or his account is already activated");
+                }
+
+                throw;
+            }
+
+            await _mediator.Publish(new UserRegisteredNotificationEvent(userForReregister.Email));
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
         [HttpPost("activate")]
         public async Task<IActionResult> Activate(UserForRegisterActivateDto userForRegisterActivate)
         {
