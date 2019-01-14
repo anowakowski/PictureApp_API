@@ -10,6 +10,7 @@ using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
+using PictureApp.API.Dtos;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -103,6 +104,145 @@ namespace PictureApp.API.Tests.Services
 
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
+        }
+
+        [Test]
+        public void Reregister_WhenCalledWithNull_ArgumentNullExceptionExpected()
+        {
+            // ARRANGE
+            var service = new AuthService(Substitute.For<IRepository<User>>(),
+                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
+                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>());
+
+            // ACT
+            Func<Task> action = async () => await service.Reregister(null);
+
+            // ASSERT
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Test]
+        public void Reregister_WhenCalledEndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
+        {
+            // ARRANGE
+            var userRepository = Substitute.For<IRepository<User>>();
+            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
+            var service = new AuthService(userRepository,
+                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
+                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>());
+
+            // ACT
+            var userForReregister = new UserForReregisterDto {Email = "user@post.com"};
+            Func<Task> action = async () => await service.Reregister(userForReregister);
+
+            // ASSERT
+            action.Should().Throw<EntityNotFoundException>()
+                .WithMessage($"The user with email: {userForReregister.Email} does not exist in data store");
+        }
+
+        [Test]
+        public void Reregister_WhenCalledEndUserHasAlreadyActivatedAccount_NotAuthorizedExceptionExpected()
+        {
+            // ARRANGE
+            var actualUser = new User { Email = "user@post.com", IsAccountActivated = true };
+            var userRepository = Substitute.For<IRepository<User>>();
+            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { actualUser };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            var service = new AuthService(userRepository,
+                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
+                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>());
+
+            // ACT
+            var userForReregister = new UserForReregisterDto { Email = actualUser.Email };
+            Func<Task> action = async () => await service.Reregister(userForReregister);
+
+            // ASSERT
+            action.Should().Throw<NotAuthorizedException>()
+                .WithMessage("The user account is already activated");
+        }
+
+        [Test]
+        public async Task Reregister_WhenCalledAndUserHasNoToken_NewTokenInUserExpected()
+        {
+            // ARRANGE
+            var actualUser = new User {Id = 99, Email = "user@post.com", IsAccountActivated = false};
+            var newActivationToken = new AccountActivationToken { Token = "The token" };
+            var userRepository = Substitute.For<IRepository<User>>();
+            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { actualUser };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            User userToUpdate = null;
+            userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => userToUpdate = x.ArgAt<User>(0));
+            var activationTokenProvider = Substitute.For<IActivationTokenProvider>();
+            activationTokenProvider.CreateToken().Returns(newActivationToken.Token);
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
+                .Returns((AccountActivationToken)null);
+            var expected = new User
+            {
+                Id = actualUser.Id,
+                Email = actualUser.Email,
+                ActivationToken = new AccountActivationToken {Token = newActivationToken.Token}
+            };
+            var service = new AuthService(userRepository,
+                accountActivationTokenRepository, unitOfWork,
+                Substitute.For<IMapper>(), activationTokenProvider);
+
+            // ACT
+            await service.Reregister(new UserForReregisterDto {Email = actualUser .Email});
+
+            // ASSERT
+            userToUpdate.Should().BeEquivalentTo(expected);
+            await unitOfWork.Received().CompleteAsync();
+        }
+
+        [Test]
+        public async Task Reregister_WhenCalledAndUserHasAlreadyToken_UpdatedTokenExpected()
+        {
+            // ARRANGE
+            var actualUser = new User { Id = 99, Email = "user@post.com", IsAccountActivated = false };
+            var newActivationToken = new AccountActivationToken { Token = "The new token" };
+            var userRepository = Substitute.For<IRepository<User>>();
+            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { actualUser };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            var activationTokenProvider = Substitute.For<IActivationTokenProvider>();
+            activationTokenProvider.CreateToken().Returns(newActivationToken.Token);
+            var unitOfWork = Substitute.For<IUnitOfWork>();
+            var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
+                .Returns(x =>
+                    {
+                        var store = new List<AccountActivationToken> { new AccountActivationToken {Token = "The old token", UserId = actualUser.Id} };
+                        return store.Single(x.ArgAt<Expression<Func<AccountActivationToken, bool>>>(0).Compile());
+                    }
+                );
+            AccountActivationToken accountActivationTokenToUpdate = null;
+            accountActivationTokenRepository.When(x => x.Update(Arg.Any<AccountActivationToken>())).Do(x =>
+                accountActivationTokenToUpdate = x.ArgAt<AccountActivationToken>(0));
+            var expected = new AccountActivationToken
+            {
+                UserId = actualUser.Id,
+                Token = newActivationToken.Token
+            };
+            var service = new AuthService(userRepository,
+                accountActivationTokenRepository, unitOfWork,
+                Substitute.For<IMapper>(), activationTokenProvider);
+
+            // ACT
+            await service.Reregister(new UserForReregisterDto { Email = actualUser.Email });
+
+            // ASSERT
+            accountActivationTokenToUpdate.Should().BeEquivalentTo(expected);
+            await unitOfWork.Received().CompleteAsync();
         }
     }
 }

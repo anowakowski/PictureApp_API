@@ -7,6 +7,8 @@ namespace PictureApp.API.Services
     {
         Task Register(UserForRegisterDto userForRegister);
 
+        Task Reregister(UserForReregisterDto userForReregister);
+
         Task Activate(string token);
 
         Task<UserLoggedInDto> Login(string email, string password);

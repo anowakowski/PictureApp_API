@@ -23,8 +23,7 @@ namespace PictureApp.API.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Following)
                 .WithOne(f => f.Followee)
-                .HasForeignKey(f => f.FolloweeId);                
+                .HasForeignKey(f => f.FolloweeId);
         }
-
     }
 }
