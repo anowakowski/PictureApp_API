@@ -23,6 +23,7 @@ namespace PictureApp.API.Helpers
             CreateMap<User, UserForRegisterDto>()
                 .ForMember(dest => dest.Password, opt => opt.Ignore());
             CreateMap<User, UserLoggedInDto>();
+            CreateMap<Photo, PhotosForPhotoExploreViewDto>();
             CreateMap<User, UserForDetailedDto>()
                 .ForMember(dest => dest.PhotoUrl,
                     opt => { opt.MapFrom(src => src.Photos.FirstOrDefault(p => p.IsMain).Url); })
