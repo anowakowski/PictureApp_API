@@ -1,4 +1,6 @@
 
+using System.Collections.Generic;
+
 namespace PictureApp.API.Dtos
 {
     public class UsersListWithFollowersForExploreDto
@@ -8,6 +10,6 @@ namespace PictureApp.API.Dtos
         public bool IsFollowerForCurrentUser { get; set; }
         public string Email { get; set; }
         public string PhotoUrl { get; set; }
-
+        public IEnumerable<PhotosForPhotoExploreViewDto> Photos; 
     }
 }
