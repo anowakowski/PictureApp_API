@@ -25,16 +25,12 @@ namespace PictureApp.API.Helpers
             CreateMap<User, UserLoggedInDto>();
             CreateMap<Photo, PhotosForPhotoExploreViewDto>();
             CreateMap<User, UserForDetailedDto>()
-                .ForMember(dest => dest.PhotoUrl,
-                    opt => { opt.MapFrom(src => src.Photos.FirstOrDefault(p => p.IsMain).Url); })
                 .ForMember(dest => dest.ActivationToken,
                     opt => { opt.MapFrom(src => src.ActivationToken != null ? src.ActivationToken.Token : null); });
             CreateMap<User, UsersListWithFollowersForExploreDto>()
                 .ForMember(dest => dest.IsFollowerForCurrentUser, opt => {
                     opt.MapFrom(src => src.Following.Any(x => x.FolloweeId == src.Id));
-                })   
-                .ForMember(dest => dest.PhotoUrl,
-                    opt => { opt.MapFrom(src => src.Photos.FirstOrDefault(p => p.IsMain).Url); });                            
+                });                          
         }
     }
 }
