@@ -6,7 +6,7 @@ namespace PictureApp.API.Services
 {
     public interface IUserService
     {
-        UserForDetailedDto GetUser(int userId);
+        Task<UserForDetailedDto>  GetUser(int userId);
         UserForDetailedDto GetUser(string email);
         Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId);
     }

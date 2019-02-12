@@ -21,16 +21,19 @@ namespace PictureApp.API.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public UserForDetailedDto GetUser(int userId)
+        public async Task<UserForDetailedDto> GetUser(int userId)
         {
-            var user = _userRepository.Find(u => u.Id == userId).FirstOrDefault();
+            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+            var user = users.FirstOrDefault();
 
             if (user == null)
             {
                 throw new EntityNotFoundException($"user by id {userId} not found");
             }
 
-            return _mapper.Map<UserForDetailedDto>(user);
+            var test =_mapper.Map<UserForDetailedDto>(user);
+
+            return test;
         }
 
         public UserForDetailedDto GetUser(string email)
