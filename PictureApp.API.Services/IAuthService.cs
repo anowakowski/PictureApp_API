@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 
 namespace PictureApp.API.Services
 {

@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;

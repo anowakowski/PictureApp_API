@@ -1,7 +1,8 @@
 
 using System.Collections.Generic;
+using PictureApp.API.Dtos.PhotosDto;
 
-namespace PictureApp.API.Dtos
+namespace PictureApp.API.Dtos.UserDto
 {
     public class UsersListWithFollowersForExploreDto
     {

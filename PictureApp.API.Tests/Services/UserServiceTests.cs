@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Services;
@@ -46,7 +48,7 @@ namespace PictureApp.API.Tests.Services
             var service = new UserService(repository,
                 Substitute.For<IMapper>());
             var userId = 0;    
-            Func<UserForDetailedDto> action = () => service.GetUser(userId);
+            Func<Task<UserForDetailedDto>> action = () => service.GetUser(userId);
 
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");

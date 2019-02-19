@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 
@@ -31,10 +32,25 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"user by id {userId} not found");
             }
 
-            var test =_mapper.Map<UserForDetailedDto>(user);
+            var userDto =_mapper.Map<UserForDetailedDto>(user);
 
-            return test;
+            return userDto;
         }
+
+        public async Task<UserForEditProfileDto> GetUserForEdit(int userId)
+        {
+            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+            var user = users.FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"user by id {userId} not found");
+            }
+
+            var userDto =_mapper.Map<UserForEditProfileDto>(user);
+
+            return userDto;
+        }        
 
         public UserForDetailedDto GetUser(string email)
         {

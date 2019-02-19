@@ -1,6 +1,8 @@
 using System.Linq;
 using AutoMapper;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.PhotosDto;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Models;
 
 namespace PictureApp.API.Helpers

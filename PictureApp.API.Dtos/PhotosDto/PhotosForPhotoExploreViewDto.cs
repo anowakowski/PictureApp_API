@@ -1,4 +1,4 @@
-namespace PictureApp.API.Dtos
+namespace PictureApp.API.Dtos.PhotosDto
 {
     public class PhotosForPhotoExploreViewDto
     {
