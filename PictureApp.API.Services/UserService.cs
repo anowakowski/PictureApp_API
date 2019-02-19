@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
@@ -40,6 +41,7 @@ namespace PictureApp.API.Services
         public async Task<UserForEditProfileDto> GetUserForEdit(int userId)
         {
             var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+
             var user = users.FirstOrDefault();
 
             if (user == null)
@@ -49,6 +51,7 @@ namespace PictureApp.API.Services
 
             var userDto =_mapper.Map<UserForEditProfileDto>(user);
 
+            userDto.Photos = RemoveMainPhoto(userDto.Photos);
             return userDto;
         }        
 
@@ -70,6 +73,11 @@ namespace PictureApp.API.Services
                 include => include.Followers, include => include.Following, include => include.Photos);
 
             return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
+        }
+
+        private IEnumerable<PhotosForPhotoExploreViewDto> RemoveMainPhoto(IEnumerable<PhotosForPhotoExploreViewDto> photos)
+        {
+            return photos.Where(p => !p.IsMain);
         }
     }
 }
