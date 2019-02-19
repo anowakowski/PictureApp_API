@@ -28,6 +28,12 @@ namespace PictureApp.API.Controllers
             return Ok(await _userService.GetUser(id));
         }
 
+        [HttpGet("userEditProfile/{id}")]
+        public async Task<IActionResult> GetUserForEdit(int id)
+        {
+            return Ok(await _userService.GetUserForEdit(id));
+        }
+
         [HttpGet("allUserWithFollowerInfo")]
         public async Task<IActionResult> GetUsersWithFollowers()
         {
