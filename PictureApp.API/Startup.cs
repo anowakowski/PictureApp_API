@@ -49,6 +49,7 @@ namespace PictureApp.API
             services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<INotificationService, EmailNotificationService>();
             services.AddScoped<IEmailClientProvider, MailKitEmailClientProvider>();
             services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
@@ -74,7 +75,7 @@ namespace PictureApp.API
         {
             void Seed()
             {
-                seed.SeedUsers();
+                //seed.SeedUsers();
                 //seed.SeedNotificationTemplates();
             }
 

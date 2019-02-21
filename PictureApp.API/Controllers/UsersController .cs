@@ -15,11 +15,13 @@ namespace PictureApp.API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IPhotoService _photoService;
 
-        public UsersController(IUserService userService, IMapper mapper)
+        public UsersController(IUserService userService, IMapper mapper, IPhotoService photoService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _photoService = photoService;
         }
 
         [HttpGet("{id}")]
@@ -39,7 +41,10 @@ namespace PictureApp.API.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            return Ok(await _userService.GetAllWithFollowers(currentUserId));
+            var users = await _userService.GetAllWithFollowers(currentUserId);
+            await Task.Run(() => _photoService.SetUserPhotoWithComments(users));
+
+            return Ok(users);
         }     
     }
 }
