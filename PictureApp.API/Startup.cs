@@ -74,7 +74,7 @@ namespace PictureApp.API
         {
             void Seed()
             {
-                //seed.SeedUsers();
+                seed.SeedUsers();
                 //seed.SeedNotificationTemplates();
             }
 
