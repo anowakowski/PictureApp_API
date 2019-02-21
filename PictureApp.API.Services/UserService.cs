@@ -51,7 +51,6 @@ namespace PictureApp.API.Services
 
             var userDto =_mapper.Map<UserForEditProfileDto>(user);
 
-            userDto.Photos = RemoveMainPhoto(userDto.Photos);
             return userDto;
         }        
 
@@ -73,11 +72,6 @@ namespace PictureApp.API.Services
                 include => include.Followers, include => include.Following, include => include.Photos);
 
             return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
-        }
-
-        private IEnumerable<PhotosForPhotoExploreViewDto> RemoveMainPhoto(IEnumerable<PhotosForPhotoExploreViewDto> photos)
-        {
-            return photos.Where(p => !p.IsMain);
         }
     }
 }
