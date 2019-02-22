@@ -36,15 +36,33 @@ namespace PictureApp.API.Controllers
             return Ok(await _userService.GetUserForEdit(id));
         }
 
-        [HttpGet("allUserWithFollowerInfo")]
-        public async Task<IActionResult> GetUsersWithFollowers()
+        [HttpGet("getCurrentUserFollowersForDashboard/{id}")]
+        public async Task<IActionResult> GetUsersWithFollowersForCurrentUser(int id)
+        {
+            try
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                var users = await _userService.GetAllWithFollowers(id);
+                await Task.Run(() => _photoService.SetUserPhotoWithComments(users));
+
+                return Ok(users);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+        }
+
+        private void CheckIfCurrentUserIsCorrect(int id)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var users = await _userService.GetAllWithFollowers(currentUserId);
-            await Task.Run(() => _photoService.SetUserPhotoWithComments(users));
-
-            return Ok(users);
-        }     
+            if (currentUserId != id)
+            {
+                throw new Exception("requested user Id is different by current user id");
+            }
+        }
     }
 }
