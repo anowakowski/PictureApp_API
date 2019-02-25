@@ -40,7 +40,7 @@ namespace PictureApp.API.Tests.Services
         }    
 
         [Test]
-        public void GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
+        public async Task GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
             var repository = Substitute.For<IRepository<User>>();
@@ -48,10 +48,7 @@ namespace PictureApp.API.Tests.Services
             var service = new UserService(repository,
                 Substitute.For<IMapper>());
             var userId = 0;    
-            Func<Task<UserForDetailedDto>> action = () => service.GetUser(userId);
-
-            // ACT & ASSERT
-            action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");
+            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId));       
         }
 
         [Test]
