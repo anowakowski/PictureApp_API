@@ -37,18 +37,18 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
-        }    
+        }
 
         [Test]
-        public async Task GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
+        public void GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
             var repository = Substitute.For<IRepository<User>>();
             repository.Find(Arg.Any<Expression<Func<User, bool>>>()).Returns(new List<User>());
             var service = new UserService(repository,
                 Substitute.For<IMapper>());
-            var userId = 0;    
-            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId));       
+            var userId = 0;
+            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId));
         }
 
         [Test]
