@@ -47,6 +47,7 @@ namespace PictureApp.API
                 });         
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
             services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
+            services.AddScoped<IPasswordProvider, PasswordProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<INotificationService, EmailNotificationService>();

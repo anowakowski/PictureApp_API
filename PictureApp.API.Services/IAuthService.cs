@@ -9,6 +9,8 @@ namespace PictureApp.API.Services
 
         Task Activate(string token);
 
+        Task ChangePassword(string email, string oldPassword, string newPassword, string retypedNewPassword);
+
         Task<UserLoggedInDto> Login(string email, string password);
 
         Task<bool> UserExists(string email);

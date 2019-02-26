@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Dtos;
+using PictureApp.API.Extensions;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
@@ -20,7 +21,7 @@ namespace PictureApp.API.Controllers
         private readonly IAuthTokenProvider _authTokenProvider;
         private readonly IAuthService _authService;
         private readonly IMediator _mediator;
-        
+
         public AuthController(IAuthTokenProvider authTokenProvider, IAuthService authService, IMediator mediator)
         {
             _authTokenProvider = authTokenProvider ?? throw new ArgumentNullException(nameof(authTokenProvider));
@@ -62,6 +63,24 @@ namespace PictureApp.API.Controllers
                 throw;
             }
                         
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpPost("changepassword")]
+        public async Task<IActionResult> ChangePassword(UserForChangePasswordDto userForChangePassword)
+        {
+            try
+            {
+                await _authService.ChangePassword(User.GetEmail(), userForChangePassword.OldPassword,
+                    userForChangePassword.NewPassword,
+                    userForChangePassword.RetypedPassword);
+            }            
+            catch (ArgumentException ex)
+            {
+                return BadRequest(
+                    $"Wrong {nameof(userForChangePassword.OldPassword)} or given {nameof(userForChangePassword.NewPassword)} is not the same as {nameof(userForChangePassword.RetypedPassword)}");
+            }
+
             return StatusCode(StatusCodes.Status201Created);
         }
 

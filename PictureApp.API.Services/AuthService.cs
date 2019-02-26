@@ -18,10 +18,11 @@ namespace PictureApp.API.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IActivationTokenProvider _activationTokenProvider;
+        private readonly IPasswordProvider _passwordProvider;
 
         public AuthService(IRepository<User> userRepository,
             IRepository<AccountActivationToken> accountActivationTokenRepository, IUnitOfWork unitOfWork,
-            IMapper mapper, IActivationTokenProvider activationTokenProvider)
+            IMapper mapper, IActivationTokenProvider activationTokenProvider, IPasswordProvider passwordProvider)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _accountActivationTokenRepository = accountActivationTokenRepository ??
@@ -30,18 +31,18 @@ namespace PictureApp.API.Services
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _activationTokenProvider = activationTokenProvider ?? throw new ArgumentNullException(nameof(activationTokenProvider));
+            _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
         {
             if (userForRegister == null) throw new ArgumentNullException(nameof(userForRegister));
 
-            byte[] passwordHash, passwordSalt;
-            CreatePasswordHash(userForRegister.Password, out passwordHash, out passwordSalt);
+            var password = _passwordProvider.CreatePasswordHash(userForRegister.Password);
 
             var userToCreate = _mapper.Map<User>(userForRegister);
-            userToCreate.PasswordHash = passwordHash;
-            userToCreate.PasswordSalt = passwordSalt;
+            userToCreate.PasswordHash = password.passwordHash;
+            userToCreate.PasswordSalt = password.passwordSalt;
             userToCreate.ActivationToken = CreateActivationToken();
 
             await _userRepository.AddAsync(userToCreate);
@@ -69,6 +70,34 @@ namespace PictureApp.API.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task ChangePassword(string email, string oldPassword, string newPassword, string retypedNewPassword)
+        {
+            var user = await GetUser(email);
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
+            }
+
+            var password = _passwordProvider.CreatePasswordHash(oldPassword);
+
+            if (user.PasswordHash != password.passwordHash)
+            {
+                throw new ArgumentException("The given old password does not fit to the current user password");
+            }
+
+            if (newPassword != retypedNewPassword)
+            {
+                throw new ArgumentException("The new password is different than retyped new password");
+            }
+
+            password = _passwordProvider.CreatePasswordHash(newPassword);
+            user.PasswordHash = password.passwordHash;
+            user.PasswordSalt = password.passwordSalt;
+
+            _userRepository.Update(user);
+            await _unitOfWork.CompleteAsync();
+        }
+
         public async Task<UserLoggedInDto> Login(string email, string password)
         {
             var user = await GetUser(email);
@@ -77,7 +106,7 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
             }
 
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            if (!_passwordProvider.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
             {
                 throw new NotAuthorizedException($"The user: {email} password verification has been failed");
             }
@@ -95,36 +124,12 @@ namespace PictureApp.API.Services
             return await _userRepository.SingleOrDefaultAsync(x => x.Email == email.ToLower());
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
-        }
-
         private AccountActivationToken CreateActivationToken()
         {
             return new AccountActivationToken
             {
                 Token = _activationTokenProvider.CreateToken()
             };
-        }
-
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != passwordHash[i]) return false;
-                }
-            }
-
-            return true;
-        }
+        }        
     }
 }
