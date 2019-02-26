@@ -27,13 +27,32 @@ namespace PictureApp.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            return Ok(await _userService.GetUser(id));
+            try
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                return Ok(await _userService.GetUser(id));
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("userEditProfile/{id}")]
         public async Task<IActionResult> GetUserForEdit(int id)
         {
-            return Ok(await _userService.GetUserForEdit(id));
+            try 
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                return Ok(await _userService.GetUserForEdit(id));
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
+
         }
 
         [HttpGet("getCurrentUserFollowersForDashboard/{id}")]
