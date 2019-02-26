@@ -44,7 +44,7 @@ namespace PictureApp.API.Controllers
                 CheckIfCurrentUserIsCorrect(id);
 
                 var users = await _userService.GetAllWithFollowers(id);
-                await Task.Run(() => _photoService.SetUserPhotoWithComments(users));
+                await Task.Run(() => _photoService.GetUsersPhotosWithComments(users));
 
                 return Ok(users);
             }
