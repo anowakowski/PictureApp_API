@@ -23,12 +23,12 @@
             "UserId": 2
           },
           {
-            "Content": "same Bridgett photo conent2",
-            "UserId": 3
+            "Content": "same Bridgett photo userId4",
+            "UserId": 4
           },
           {
-            "Content": "same Bridgett photo conent3",
-            "UserId": 4
+            "Content": "same Bridgett photo userId7",
+            "UserId": 7
           }
         ]
       }
@@ -55,11 +55,7 @@
         "PhotoComments": [
           {
             "Content": "same Cristina photo conent",
-            "UserId": 2
-          },
-          {
-            "Content": "same Cristina photo conent2",
-            "UserId": 3
+            "UserId": 5
           },
           {
             "Content": "same Cristina photo conent3",
