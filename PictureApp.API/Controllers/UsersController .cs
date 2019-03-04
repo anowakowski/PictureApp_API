@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Services;
 
 namespace PictureApp.API.Controllers
@@ -31,7 +32,7 @@ namespace PictureApp.API.Controllers
             {
                 CheckIfCurrentUserIsCorrect(id);
 
-                return Ok(await _userService.GetUser(id));
+                return Ok(await _userService.GetUser(id, user => _mapper.Map<UserForDetailedDto>(user)));
             }
             catch(Exception)
             {
@@ -46,7 +47,7 @@ namespace PictureApp.API.Controllers
             {
                 CheckIfCurrentUserIsCorrect(id);
 
-                return Ok(await _userService.GetUserForEdit(id));
+                return Ok(await _userService.GetUser(id, user => _mapper.Map<UserForEditProfileDto>(user)));
             }
             catch(Exception)
             {
@@ -63,7 +64,7 @@ namespace PictureApp.API.Controllers
                 CheckIfCurrentUserIsCorrect(id);
 
                 var users = await _userService.GetAllWithFollowers(id);
-                await Task.Run(() => _photoService.GetUsersPhotosWithComments(users));
+                await Task.Run(() => _photoService.SetUsersPhotosWithComments(users));
 
                 return Ok(users);
             }

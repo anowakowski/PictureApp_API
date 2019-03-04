@@ -48,7 +48,7 @@ namespace PictureApp.API.Tests.Services
             var service = new UserService(repository,
                 Substitute.For<IMapper>());
             var userId = 0;
-            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId));
+            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId, Arg.Any<Func<User, UserForDetailedDto>>()));
         }
 
         [Test]

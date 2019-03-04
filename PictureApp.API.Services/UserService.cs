@@ -23,35 +23,15 @@ namespace PictureApp.API.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<UserForDetailedDto> GetUser(int userId)
+        public async Task<T> GetUser<T>(int userId, Func<User, T> func) where T : class
         {
-            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
-            var user = users.FirstOrDefault();
+            User user = await GetCurrentUserWithPhoto(userId);
 
             if (user == null)
             {
-                throw new EntityNotFoundException($"user by id {userId} not found");
+                throw new EntityNotFoundException($"user with id {userId} not found");
             }
-
-            var userDto =_mapper.Map<UserForDetailedDto>(user);
-
-            return userDto;
-        }
-
-        public async Task<UserForEditProfileDto> GetUserForEdit(int userId)
-        {
-            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
-
-            var user = users.FirstOrDefault();
-
-            if (user == null)
-            {
-                throw new EntityNotFoundException($"user by id {userId} not found");
-            }
-
-            var userDto =_mapper.Map<UserForEditProfileDto>(user);
-
-            return userDto;
+            return func(user);
         }        
 
         public UserForDetailedDto GetUser(string email)
@@ -72,6 +52,13 @@ namespace PictureApp.API.Services
                 include => include.Followers, include => include.Following, include => include.Photos);
 
             return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
+        }
+
+        private async Task<User> GetCurrentUserWithPhoto(int userId)
+        {
+            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+            var user = users.FirstOrDefault();
+            return user;
         }
     }
 }

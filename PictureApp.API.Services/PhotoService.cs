@@ -19,7 +19,7 @@ namespace PictureApp.API.Services
             _repo = repo;
             this._mapper = mapper;
         }
-        public async Task GetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users)
+        public async Task SetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users)
         {
             foreach(var user in users)
             {

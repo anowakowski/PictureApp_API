@@ -9,6 +9,7 @@ using AutoMapper;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Services;
@@ -36,8 +37,8 @@ namespace PictureApp.API.Services
 
         public async Task SetUpFollower(int userId, int recipientId)
         {
-            var findedUser = _userService.GetUser(userId);
-            var findedFollower = _userService.GetUser(recipientId);
+            var findedUser = _userService.GetUser(userId, user => _mapper.Map<UserForDetailedDto>(user));
+            var findedFollower = _userService.GetUser(recipientId, user => _mapper.Map<UserForDetailedDto>(user));
 
             if (findedUser != null && 
                 findedUser != null && 
@@ -57,8 +58,8 @@ namespace PictureApp.API.Services
 
         public async Task SetUpUnfollower(int userId, int recipientId)
         {
-            var findedUser = _userService.GetUser(userId);
-            var findedFollower = _userService.GetUser(recipientId);
+            var findedUser = _userService.GetUser(userId, user => _mapper.Map<UserForDetailedDto>(user));
+            var findedFollower = _userService.GetUser(recipientId, user => _mapper.Map<UserForDetailedDto>(user));
 
             var userFollower = await _userFollowerRepository.FirstOrDefaultAsync(
                 u => u.FollowerId == userId && u.FolloweeId == recipientId);

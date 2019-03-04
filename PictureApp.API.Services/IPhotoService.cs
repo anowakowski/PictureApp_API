@@ -8,6 +8,6 @@ namespace PictureApp.API.Services
 {
     public interface IPhotoService
     {
-        Task GetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users);
+        Task SetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users);
     }
 }
