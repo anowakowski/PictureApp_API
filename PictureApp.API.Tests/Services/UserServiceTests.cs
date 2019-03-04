@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Services;
@@ -35,7 +37,7 @@ namespace PictureApp.API.Tests.Services
 
             // ACT & ASSERT
             action.Should().Throw<ArgumentNullException>();
-        }    
+        }
 
         [Test]
         public void GetUser_WhenCalledWithUnknownUser_EntityNotFoundExceptionExpected()
@@ -45,11 +47,8 @@ namespace PictureApp.API.Tests.Services
             repository.Find(Arg.Any<Expression<Func<User, bool>>>()).Returns(new List<User>());
             var service = new UserService(repository,
                 Substitute.For<IMapper>());
-            var userId = 0;    
-            Func<UserForDetailedDto> action = () => service.GetUser(userId);
-
-            // ACT & ASSERT
-            action.Should().Throw<EntityNotFoundException>().WithMessage($"user by id {userId} not found");
+            var userId = 0;
+            Assert.ThrowsAsync<EntityNotFoundException>(async () => await service.GetUser(userId, Arg.Any<Func<User, UserForDetailedDto>>()));
         }
 
         [Test]

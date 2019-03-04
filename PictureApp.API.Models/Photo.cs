@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 
 namespace PictureApp.API.Models
 {
     public class Photo : Entity
     {
+        public string Title { get; set; }
+        public string Subtitle { get; set; }
         public string Url { get; set; }
         public string Description { get; set; }
         public DateTime DateAdded { get; set; }
@@ -11,5 +14,6 @@ namespace PictureApp.API.Models
         public string PublicId { get; set; }
         public User User { get; set; }
         public int UserId { get; set; }  
+        public ICollection<PhotoComment> PhotoComments { get; set; }
     }
 }

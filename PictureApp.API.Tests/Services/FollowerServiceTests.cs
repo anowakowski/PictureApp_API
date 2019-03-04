@@ -10,6 +10,7 @@ using FluentAssertions;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using PictureApp.API.Extensions.Exceptions;
+using PictureApp.API.Dtos.UserDto;
 
 namespace PictureApp.API.Tests.Services
 {
@@ -70,7 +71,7 @@ namespace PictureApp.API.Tests.Services
 
             var unitOfWork = Substitute.For<IUnitOfWork>();
             var userService = Substitute.For<IUserService>();
-            userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
+            userService.GetUser(Arg.Any<int>(), Arg.Any<Func<User, UserForDetailedDto>>()).Returns(new UserForDetailedDto());
 
             var service = new FollowerService(userService, userFollowerRepo,
                 unitOfWork, Substitute.For<IMapper>());
@@ -121,7 +122,7 @@ namespace PictureApp.API.Tests.Services
 
             var unitOfWork = Substitute.For<IUnitOfWork>();
             var userService = Substitute.For<IUserService>();
-            userService.GetUser(Arg.Any<int>()).Returns(new Dtos.UserForDetailedDto());
+            userService.GetUser(Arg.Any<int>(), Arg.Any<Func<User, UserForDetailedDto>>()).Returns(new UserForDetailedDto());
 
             var service = new FollowerService(userService, userFollowerRepo,
                 unitOfWork, Substitute.For<IMapper>());
