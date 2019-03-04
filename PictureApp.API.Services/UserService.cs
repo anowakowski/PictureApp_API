@@ -25,7 +25,8 @@ namespace PictureApp.API.Services
 
         public async Task<T> GetUser<T>(int userId, Func<User, T> func) where T : class
         {
-            User user = await GetCurrentUserWithPhoto(userId);
+            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+            var user = users.FirstOrDefault();
 
             if (user == null)
             {
@@ -52,13 +53,6 @@ namespace PictureApp.API.Services
                 include => include.Followers, include => include.Following, include => include.Photos);
 
             return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
-        }
-
-        private async Task<User> GetCurrentUserWithPhoto(int userId)
-        {
-            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
-            var user = users.FirstOrDefault();
-            return user;
         }
     }
 }
