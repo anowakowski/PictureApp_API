@@ -33,16 +33,16 @@ namespace PictureApp.API.Controllers
         public async Task<IActionResult> Register(UserForRegisterDto userForRegister)
         {
             userForRegister.Email = userForRegister.Email.ToLower();
-            
+
             if (await _authService.UserExists(userForRegister.Email))
             {
                 return BadRequest("User name already exists");
             }
 
             await Task.Run(() => _authService.Register(userForRegister));
-            
+
             await _mediator.Publish(new UserRegisteredNotificationEvent(userForRegister.Email));
-            
+
             return StatusCode(StatusCodes.Status201Created);
         }
 
@@ -62,7 +62,7 @@ namespace PictureApp.API.Controllers
 
                 throw;
             }
-                        
+
             return StatusCode(StatusCodes.Status201Created);
         }
 
@@ -74,7 +74,7 @@ namespace PictureApp.API.Controllers
                 await _authService.ChangePassword(User.GetEmail(), userForChangePassword.OldPassword,
                     userForChangePassword.NewPassword,
                     userForChangePassword.RetypedPassword);
-            }            
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(
@@ -84,30 +84,50 @@ namespace PictureApp.API.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult> Login(UserForLoginDto userForLogin)
+        [HttpPost("resetpasswordrequest")]
+        public async Task<IActionResult> ResetPasswordRequest(ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            try 
+            await Task.Run(() => _authService.ResetPasswordRequest(resetPasswordRequestDto.Email));
+
+            await _mediator.Publish(new ResetPasswordRequestNotificationEvent(resetPasswordRequestDto.Email));
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        public async Task<IActionResult> ResetPassword(UserResetPasswordDto resetPasswordDto)
+        {
+            // TODO:            
+            // - read email from User static class
+            // - execute _authService.ResestPassword()
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(UserForLoginDto userForLogin)
+        {
+            try
             {
                 var userForLoggedDto = await _authService.Login(userForLogin.Email.ToLower(), userForLogin.Password);
 
                 if (userForLoggedDto == null)
                     return Unauthorized();
 
-            var token = _authTokenProvider.GetToken(
-                new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
-                new Claim(ClaimTypes.Email, userForLoggedDto.Email),
-                new Claim(ClaimTypes.Name, userForLoggedDto.Username));                
+                var token = _authTokenProvider.GetToken(
+                    new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
+                    new Claim(ClaimTypes.Email, userForLoggedDto.Email),
+                    new Claim(ClaimTypes.Name, userForLoggedDto.Username));
 
                 return Ok(new
                 {
                     token = token
-                });                
+                });
 
-            } catch(EntityNotFoundException ex)
+            }
+            catch (EntityNotFoundException ex)
             {
                 return NotFound(ex.Message);
             }
-        }
+        }        
     }
 }

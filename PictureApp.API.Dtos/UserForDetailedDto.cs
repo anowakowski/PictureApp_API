@@ -7,5 +7,6 @@ namespace PictureApp.API.Dtos
         public string Email { get; set; }
         public string PhotoUrl { get; set; }
         public string ActivationToken { get; set; }
+        public string ResetPasswordToken { get; set; }
     }
 }

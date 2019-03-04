@@ -98,6 +98,44 @@ namespace PictureApp.API.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task ResetPasswordRequest(string email)
+        {
+            // TODO:
+            // - get user by email
+            var user = await GetUser(email);
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
+            }
+
+            // - generate token for password reset                         
+            var resetToken = CreateActivationToken();
+
+            // - save token in data store
+            await _accountActivationTokenRepository.AddAsync(resetToken);
+            await _unitOfWork.CompleteAsync();            
+        }
+
+        public async Task ResetPassword(string token, string newPassword)
+        {
+            // TODO:            
+            // - check whether token is valid            
+            // - check whether token exists            
+            var resetToken = await TokenValidation(token);
+
+            // - get user by token
+            var user = await _userRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
+
+            // - set new password to the user
+            var password = _passwordProvider.CreatePasswordHash(newPassword);
+            user.PasswordHash = password.passwordHash;
+            user.PasswordSalt = password.passwordSalt;
+
+            // - save user with new password
+            _userRepository.Update(user);
+            await _unitOfWork.CompleteAsync();
+        }
+
         public async Task<UserLoggedInDto> Login(string email, string password)
         {
             var user = await GetUser(email);
@@ -130,6 +168,22 @@ namespace PictureApp.API.Services
             {
                 Token = _activationTokenProvider.CreateToken()
             };
-        }        
+        }
+
+        private async Task<AccountActivationToken> TokenValidation(string token)
+        {
+            if (_activationTokenProvider.IsTokenExpired(token))
+            {
+                throw new SecurityTokenExpiredException("Given token is already expired");
+            }
+
+            var activationToken = await _accountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
+            if (activationToken == null)
+            {
+                throw new EntityNotFoundException($"Given token {token} does not exist in data store");
+            }
+
+            return activationToken;
+        }
     }
 }

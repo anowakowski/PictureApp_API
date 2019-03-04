@@ -1,6 +1,6 @@
 ﻿namespace PictureApp.API.Providers
 {
-    public interface IActivationTokenProvider
+    public interface IActivationTokenProvider // TODO: change name to ITokenProvider
     {
         string CreateToken();
 
