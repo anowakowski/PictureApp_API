@@ -15,19 +15,21 @@ namespace PictureApp.API.Services
     {
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
+        private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IActivationTokenProvider _activationTokenProvider;
         private readonly IPasswordProvider _passwordProvider;
 
         public AuthService(IRepository<User> userRepository,
-            IRepository<AccountActivationToken> accountActivationTokenRepository, IUnitOfWork unitOfWork,
+            IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository, IUnitOfWork unitOfWork,
             IMapper mapper, IActivationTokenProvider activationTokenProvider, IPasswordProvider passwordProvider)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _accountActivationTokenRepository = accountActivationTokenRepository ??
                                                 throw new ArgumentNullException(
                                                     nameof(accountActivationTokenRepository));
+            _resetPasswordTokenRepository = resetPasswordTokenRepository ?? throw new ArgumentNullException(nameof(resetPasswordTokenRepository)); 
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _activationTokenProvider = activationTokenProvider ?? throw new ArgumentNullException(nameof(activationTokenProvider));
@@ -109,10 +111,11 @@ namespace PictureApp.API.Services
             }
 
             // - generate token for password reset                         
-            var resetToken = CreateActivationToken();
+            var resetToken = CreateResetPasswordToken();
 
             // - save token in data store
-            await _accountActivationTokenRepository.AddAsync(resetToken);
+            // - TODO: check whether token is already exist
+            await _resetPasswordTokenRepository.AddAsync(resetToken);
             await _unitOfWork.CompleteAsync();            
         }
 
@@ -165,6 +168,14 @@ namespace PictureApp.API.Services
         private AccountActivationToken CreateActivationToken()
         {
             return new AccountActivationToken
+            {
+                Token = _activationTokenProvider.CreateToken()
+            };
+        }
+
+        private ResetPasswordToken CreateResetPasswordToken()
+        {
+            return new ResetPasswordToken
             {
                 Token = _activationTokenProvider.CreateToken()
             };
