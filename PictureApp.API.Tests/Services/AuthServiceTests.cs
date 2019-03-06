@@ -22,15 +22,17 @@ namespace PictureApp.API.Tests.Services
     [TestFixture]
     public class AuthServiceTests
     {
+        // TODO: provide method, which will create instance of a SUT
+
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<IActivationTokenProvider>();
+            var activationTokenProvider = Substitute.For<ITokenProvider>();
             activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(true);
             var service = new AuthService(Substitute.For<IRepository<User>>(),
                 Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
+                Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
 
             // ACT
             Func<Task> action = async () => await service.Activate("the expired token");
@@ -43,7 +45,7 @@ namespace PictureApp.API.Tests.Services
         public void Activate_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<IActivationTokenProvider>();
+            var activationTokenProvider = Substitute.For<ITokenProvider>();
             activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
             var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
             accountActivationTokenRepository
@@ -64,7 +66,7 @@ namespace PictureApp.API.Tests.Services
         public async Task Activate_WhenCalledAndTokenNotExpired_FullAccountActivationExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<IActivationTokenProvider>();
+            var activationTokenProvider = Substitute.For<ITokenProvider>();
             activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
             var actualUser = new User {Id = 99};
             var actualActivationToken = new AccountActivationToken
@@ -115,7 +117,7 @@ namespace PictureApp.API.Tests.Services
             userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User) null);
             var service = new AuthService(userRepository,
                 Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>(), Substitute.For<IPasswordProvider>());
+                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
             var email = "user@post.com";
 
             // ACT
@@ -141,7 +143,7 @@ namespace PictureApp.API.Tests.Services
             });
             var service = new AuthService(userRepository,
                 Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>(), Substitute.For<IPasswordProvider>());
+                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
             
             // ACT
             Func<Task> action = async () =>
@@ -172,7 +174,7 @@ namespace PictureApp.API.Tests.Services
             var passwordProvider = new MockPasswordProvider(("the old password", user.PasswordHash, user.PasswordSalt));            
             var service = new AuthService(userRepository,
                 Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>(), passwordProvider);
+                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), passwordProvider);
 
             // ACT
             Func<Task> action = async () =>
@@ -208,7 +210,7 @@ namespace PictureApp.API.Tests.Services
             var unitOfWork = Substitute.For<IUnitOfWork>();
             var service = new AuthService(userRepository,
                 Substitute.For<IRepository<AccountActivationToken>>(), unitOfWork,
-                Substitute.For<IMapper>(), Substitute.For<IActivationTokenProvider>(), passwordProvider);
+                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), passwordProvider);
             var expectedUserToUpdate = new User
             {
                 Email = user.Email,

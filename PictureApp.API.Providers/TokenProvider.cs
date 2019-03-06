@@ -4,7 +4,7 @@ using PictureApp.API.Extensions;
 
 namespace PictureApp.API.Providers
 {
-    public class ActivationTokenProvider : IActivationTokenProvider
+    public class TokenProvider : ITokenProvider
     {
         private const int ExpirationTimeInHours = 24;
 

@@ -18,12 +18,12 @@ namespace PictureApp.API.Services
         private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IActivationTokenProvider _activationTokenProvider;
+        private readonly ITokenProvider _tokenProvider;
         private readonly IPasswordProvider _passwordProvider;
 
         public AuthService(IRepository<User> userRepository,
             IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository, IUnitOfWork unitOfWork,
-            IMapper mapper, IActivationTokenProvider activationTokenProvider, IPasswordProvider passwordProvider)
+            IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _accountActivationTokenRepository = accountActivationTokenRepository ??
@@ -32,7 +32,7 @@ namespace PictureApp.API.Services
             _resetPasswordTokenRepository = resetPasswordTokenRepository ?? throw new ArgumentNullException(nameof(resetPasswordTokenRepository)); 
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _activationTokenProvider = activationTokenProvider ?? throw new ArgumentNullException(nameof(activationTokenProvider));
+            _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
             _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
         }
 
@@ -53,7 +53,7 @@ namespace PictureApp.API.Services
 
         public async Task Activate(string token)
         {
-            if (_activationTokenProvider.IsTokenExpired(token))
+            if (_tokenProvider.IsTokenExpired(token))
             {
                 throw new SecurityTokenExpiredException("Given token is already expired");
             }
@@ -111,11 +111,17 @@ namespace PictureApp.API.Services
             }
 
             // - generate token for password reset                         
-            var resetToken = CreateResetPasswordToken();
+            var newToken = CreateResetPasswordToken();
 
-            // - save token in data store
-            // - TODO: check whether token is already exist
-            await _resetPasswordTokenRepository.AddAsync(resetToken);
+            // - check whether token is already exist
+            //   if so delete it and save the new one
+            var oldToken = await _resetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
+            if (oldToken != null)
+            {
+                _resetPasswordTokenRepository.Delete(oldToken);
+            }
+            
+            await _resetPasswordTokenRepository.AddAsync(newToken);
             await _unitOfWork.CompleteAsync();            
         }
 
@@ -130,9 +136,9 @@ namespace PictureApp.API.Services
             var user = await _userRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
 
             // - set new password to the user
-            var password = _passwordProvider.CreatePasswordHash(newPassword);
-            user.PasswordHash = password.passwordHash;
-            user.PasswordSalt = password.passwordSalt;
+            var (passwordHash, passwordSalt) = _passwordProvider.CreatePasswordHash(newPassword);
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
 
             // - save user with new password
             _userRepository.Update(user);
@@ -169,7 +175,7 @@ namespace PictureApp.API.Services
         {
             return new AccountActivationToken
             {
-                Token = _activationTokenProvider.CreateToken()
+                Token = _tokenProvider.CreateToken()
             };
         }
 
@@ -177,13 +183,13 @@ namespace PictureApp.API.Services
         {
             return new ResetPasswordToken
             {
-                Token = _activationTokenProvider.CreateToken()
+                Token = _tokenProvider.CreateToken()
             };
         }
 
         private async Task<AccountActivationToken> TokenValidation(string token)
         {
-            if (_activationTokenProvider.IsTokenExpired(token))
+            if (_tokenProvider.IsTokenExpired(token))
             {
                 throw new SecurityTokenExpiredException("Given token is already expired");
             }

@@ -21,7 +21,7 @@ namespace PictureApp.API.Tests.Providers
         public void CreateToken_WhenCalled_ProperTokenExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var time = DateTime.Now;
             SystemTime.Set(() => time);
             var key = SystemGuid.NewGuid();
@@ -40,7 +40,7 @@ namespace PictureApp.API.Tests.Providers
         public void IsTokenExpired_WhenCalledAndTokenIsOlderThan24Hours_TrueExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var token = provider.CreateToken();
             var time = DateTime.UtcNow.AddHours(24).AddMinutes(1);
             SystemTime.Set(() => time);
@@ -56,7 +56,7 @@ namespace PictureApp.API.Tests.Providers
         public void IsTokenExpired_WhenCalledAndTokenIsNotOlderThan24Hours_FalseExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var token = provider.CreateToken();
             var time = DateTime.UtcNow.AddHours(23).AddMinutes(59).AddSeconds(59);
             SystemTime.Set(() => time);

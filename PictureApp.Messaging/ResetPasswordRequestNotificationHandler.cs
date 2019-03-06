@@ -31,10 +31,6 @@ namespace PictureApp.Messaging
                 throw new EntityNotFoundException($"The user with given email: {notification.UserEmail} does not exist in data store");
             }
 
-            // TODO: 
-            // - get password reset url from user
-            // ResetPasswordUriFormat
-
             // Prepare reset password uri
             var resetPasswordUriFormat = _configuration.GetSection("AppSettings:ResetPasswordUriFormat").Value;
             var resetPasswordUri = Uri.EscapeUriString(resetPasswordUriFormat.Replace("{token}", user.ResetPasswordToken));

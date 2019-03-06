@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PictureApp.API.Data;
 using PictureApp.API.Models;
+using PictureApp.API.Providers;
 
 namespace PictureApp.API.SeedData
 {
@@ -18,17 +19,16 @@ namespace PictureApp.API.SeedData
 
             var users = Newtonsoft.Json.JsonConvert.DeserializeObject<List<User>>(userData);
 
-            foreach (var user in users)
+            var passwordProvider = new PasswordProvider();
+            
+            users.ForEach(user => 
             {
-                byte[] passwordHash, passwordSalt;
-                CreatePasswordHash("password", out passwordHash, out passwordSalt);
-
+                var (passwordHash, passwordSalt) = passwordProvider.CreatePasswordHash("password");
                 user.PasswordHash = passwordHash;
                 user.PasswordSalt = passwordSalt;
                 user.Username = user.Username.ToLower();
+            });
 
-                context.Users.Add(user);
-           }
             context.SaveChanges();
         }
 
@@ -44,16 +44,19 @@ namespace PictureApp.API.SeedData
             };
 
             context.Add(notificationTemplate);
+
+            notificationTemplate = new NotificationTemplate
+            {
+                Name = "Reset password of an account",
+                Abbreviation = "RPS",
+                Description = "This template is using for notify users who want to reset their accounts passwords.",
+                Body = "Dear user {UserName}, <br /> In order to reset account password please use following link: <a href=\"{ResetPasswordUri}\">{ResetPasswordUri}</a>.",
+                Subject = "Reset account password"
+            };
+
+            context.Add(notificationTemplate);
+
             context.SaveChanges();
         }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
-        }               
     }
 }

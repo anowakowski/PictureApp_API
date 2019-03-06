@@ -66,7 +66,7 @@ namespace PictureApp.API.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost("changepassword")]
+        [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword(UserForChangePasswordDto userForChangePassword)
         {
             try
@@ -84,21 +84,33 @@ namespace PictureApp.API.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [HttpPost("resetpasswordrequest")]
+        [HttpPost("ResetPasswordRequest")]
         public async Task<IActionResult> ResetPasswordRequest(ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            await Task.Run(() => _authService.ResetPasswordRequest(resetPasswordRequestDto.Email));
+            // TODO: provide try/catch clause
+            await _authService.ResetPasswordRequest(resetPasswordRequestDto.Email);
 
             await _mediator.Publish(new ResetPasswordRequestNotificationEvent(resetPasswordRequestDto.Email));
 
             return StatusCode(StatusCodes.Status201Created);
         }
 
+        [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(UserResetPasswordDto resetPasswordDto)
         {
-            // TODO:            
-            // - read email from User static class
-            // - execute _authService.ResestPassword()
+            try
+            {
+                await _authService.ResetPassword(resetPasswordDto.Token, resetPasswordDto.Password);
+            }
+            catch (Exception ex)
+            {
+                if (ex is SecurityTokenExpiredException || ex is EntityNotFoundException)
+                {
+                    return BadRequest("The new password can not be provided: token expired or does not exist");
+                }
+
+                throw;
+            }
 
             return StatusCode(StatusCodes.Status201Created);
         }
