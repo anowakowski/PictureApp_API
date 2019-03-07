@@ -97,24 +97,6 @@ namespace PictureApp.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int>("FolloweeId");
-
-                    b.Property<int>("FollowerId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FolloweeId");
-
-                    b.HasIndex("FollowerId");
-
-                    b.ToTable("UserFollower");
-                });
-                    
             modelBuilder.Entity("PictureApp.API.Models.AccountActivationToken", b =>
                 {
                     b.HasOne("PictureApp.API.Models.User", "User")
@@ -128,19 +110,6 @@ namespace PictureApp.API.Migrations
                     b.HasOne("PictureApp.API.Models.User", "User")
                         .WithMany("Photos")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("PictureApp.API.Models.UserFollower", b =>
-                {
-                    b.HasOne("PictureApp.API.Models.User", "Followee")
-                        .WithMany("Following")
-                        .HasForeignKey("FolloweeId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("PictureApp.API.Models.User", "Follower")
-                        .WithMany("Followers")
-                        .HasForeignKey("FollowerId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

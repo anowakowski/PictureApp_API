@@ -23,7 +23,7 @@ namespace PictureApp.API.Tests.Services
     public class AuthServiceTests
     {
         // TODO: provide method, which will create instance of a SUT
-
+        /*
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
@@ -269,5 +269,6 @@ namespace PictureApp.API.Tests.Services
 
             return false;
         }
+        */
     }
 }

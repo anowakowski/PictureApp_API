@@ -28,4 +28,7 @@ namespace PictureApp.API.Providers
             return true;
         }
     }
+
+    // TODO: is it necessary passwordHash class?
+    // - this class will include equality feature
 }

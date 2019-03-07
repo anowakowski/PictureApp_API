@@ -21,5 +21,8 @@ namespace PictureApp.API.Providers
             return DateTime.FromBinary(BitConverter.ToInt64(data, 0)) <
                    SystemTime.Now().AddHours(-ExpirationTimeInHours);
         }
+
+        // TODO: it is useful to have Token class?
+        // - isTokenExpired - when class is created than there can be easily pass expiration time in hours
     }
 }

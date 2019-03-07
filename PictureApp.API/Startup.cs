@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using System.Text;
 using AutoMapper;
@@ -55,6 +56,7 @@ namespace PictureApp.API
             services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
             services.AddScoped<IFollowerService, FollowerService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<IRepositoryFactory, RepositoryFactory>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -68,7 +70,10 @@ namespace PictureApp.API
                         ValidateAudience = false
                     };
                 });      
-            services.AddTransient<Seed>(); 
+            services.AddTransient<Seed>();
+            //var serviceProvider = services.BuildServiceProvider();
+            //IServiceProvider serviceProvider = null;
+            //var uow = serviceProvider.GetService<IUnitOfWork>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)

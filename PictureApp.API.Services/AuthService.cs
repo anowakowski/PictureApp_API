@@ -13,23 +13,31 @@ namespace PictureApp.API.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IRepository<User> _userRepository;
-        private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
-        private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
+        //private readonly IRepository<User> _userRepository;
+        //private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
+        //private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ITokenProvider _tokenProvider;
         private readonly IPasswordProvider _passwordProvider;
+        private readonly IRepositoryFactory _repositoryFactory;
 
-        public AuthService(IRepository<User> userRepository,
-            IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository, IUnitOfWork unitOfWork,
+        private IRepository<User> UserRepository => _repositoryFactory.Create<User>();
+        private IRepository<AccountActivationToken> AccountActivationTokenRepository =>
+            _repositoryFactory.Create<AccountActivationToken>();
+        private IRepository<ResetPasswordToken> ResetPasswordTokenRepository =>
+            _repositoryFactory.Create<ResetPasswordToken>();
+
+        public AuthService(IRepositoryFactory repositoryFactory, /*IRepository<User> userRepository,
+            IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository,*/ IUnitOfWork unitOfWork,
             IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _accountActivationTokenRepository = accountActivationTokenRepository ??
-                                                throw new ArgumentNullException(
-                                                    nameof(accountActivationTokenRepository));
-            _resetPasswordTokenRepository = resetPasswordTokenRepository ?? throw new ArgumentNullException(nameof(resetPasswordTokenRepository)); 
+            //_userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            //_accountActivationTokenRepository = accountActivationTokenRepository ??
+            //                                    throw new ArgumentNullException(
+            //                                        nameof(accountActivationTokenRepository));
+            //_resetPasswordTokenRepository = resetPasswordTokenRepository ?? throw new ArgumentNullException(nameof(resetPasswordTokenRepository)); 
+            _repositoryFactory = repositoryFactory ?? throw new ArgumentNullException(nameof(repositoryFactory));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
@@ -45,40 +53,38 @@ namespace PictureApp.API.Services
             var userToCreate = _mapper.Map<User>(userForRegister);
             userToCreate.PasswordHash = password.passwordHash;
             userToCreate.PasswordSalt = password.passwordSalt;
-            userToCreate.ActivationToken = CreateActivationToken();
+            userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
 
-            await _userRepository.AddAsync(userToCreate);
+            await UserRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();
         }
 
         public async Task Activate(string token)
         {
-            if (_tokenProvider.IsTokenExpired(token))
-            {
-                throw new SecurityTokenExpiredException("Given token is already expired");
-            }
+            var activationToken = await TokenValidation<AccountActivationToken>(token);
+            //if (_tokenProvider.IsTokenExpired(token))
+            //{
+            //    throw new SecurityTokenExpiredException("Given token is already expired");
+            //}
 
-            var activationToken = await _accountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
-            if (activationToken == null)
-            {
-                throw new EntityNotFoundException($"Given token {token} does not exist in data store");
-            }
+            //var activationToken = await AccountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
+            //if (activationToken == null)
+            //{
+            //    throw new EntityNotFoundException($"Given token {token} does not exist in data store");
+            //}
 
-            var user = await _userRepository.SingleOrDefaultAsync(x => x.Id == activationToken.UserId);
+            //var userRepository = _repositoryFactory.Create<User>();
+            var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == activationToken.UserId);
 
             user.IsAccountActivated = true;
-            _accountActivationTokenRepository.Delete(activationToken);
+            AccountActivationTokenRepository.Delete(activationToken);
 
             await _unitOfWork.CompleteAsync();
         }
 
         public async Task ChangePassword(string email, string oldPassword, string newPassword, string retypedNewPassword)
         {
-            var user = await GetUser(email);
-            if (user == null)
-            {
-                throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
-            }
+            var user = await UserValidation(email);
 
             var password = _passwordProvider.CreatePasswordHash(oldPassword);
 
@@ -96,7 +102,7 @@ namespace PictureApp.API.Services
             user.PasswordHash = password.passwordHash;
             user.PasswordSalt = password.passwordSalt;
 
-            _userRepository.Update(user);
+            UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -104,24 +110,20 @@ namespace PictureApp.API.Services
         {
             // TODO:
             // - get user by email
-            var user = await GetUser(email);
-            if (user == null)
-            {
-                throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
-            }
+            var user = await UserValidation(email);
 
             // - generate token for password reset                         
-            var newToken = CreateResetPasswordToken();
+            var newToken = CreateToken<ResetPasswordToken>();
 
             // - check whether token is already exist
             //   if so delete it and save the new one
-            var oldToken = await _resetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
+            var oldToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
             if (oldToken != null)
             {
-                _resetPasswordTokenRepository.Delete(oldToken);
+                ResetPasswordTokenRepository.Delete(oldToken);
             }
             
-            await _resetPasswordTokenRepository.AddAsync(newToken);
+            await ResetPasswordTokenRepository.AddAsync(newToken);
             await _unitOfWork.CompleteAsync();            
         }
 
@@ -130,10 +132,10 @@ namespace PictureApp.API.Services
             // TODO:            
             // - check whether token is valid            
             // - check whether token exists            
-            var resetToken = await TokenValidation(token);
+            var resetToken = await TokenValidation<ResetPasswordToken>(token);
 
             // - get user by token
-            var user = await _userRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
+            var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
 
             // - set new password to the user
             var (passwordHash, passwordSalt) = _passwordProvider.CreatePasswordHash(newPassword);
@@ -141,7 +143,7 @@ namespace PictureApp.API.Services
             user.PasswordSalt = passwordSalt;
 
             // - save user with new password
-            _userRepository.Update(user);
+            UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -168,39 +170,75 @@ namespace PictureApp.API.Services
 
         private async Task<User> GetUser(string email)
         {
-            return await _userRepository.SingleOrDefaultAsync(x => x.Email == email.ToLower());
+            return await UserRepository.SingleOrDefaultAsync(x => x.Email == email.ToLower());
         }
 
-        private AccountActivationToken CreateActivationToken()
+        //private AccountActivationToken CreateActivationToken()
+        //{
+        //    return new AccountActivationToken
+        //    {
+        //        Token = _tokenProvider.CreateToken()
+        //    };
+        //}
+
+        //private ResetPasswordToken CreateResetPasswordToken()
+        //{
+        //    return new ResetPasswordToken
+        //    {
+        //        Token = _tokenProvider.CreateToken()
+        //    };
+        //}
+
+        private TTokenEntity CreateToken<TTokenEntity>() where TTokenEntity : ITokenEntity, new()
         {
-            return new AccountActivationToken
+            return new TTokenEntity
             {
                 Token = _tokenProvider.CreateToken()
             };
         }
 
-        private ResetPasswordToken CreateResetPasswordToken()
-        {
-            return new ResetPasswordToken
-            {
-                Token = _tokenProvider.CreateToken()
-            };
-        }
+        //private async Task<ResetPasswordToken> TokenValidation(string token)
+        //{
+        //    if (_tokenProvider.IsTokenExpired(token))
+        //    {
+        //        throw new SecurityTokenExpiredException("Given token is already expired");
+        //    }
 
-        private async Task<AccountActivationToken> TokenValidation(string token)
+        //    var resetPasswordToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
+        //    if (resetPasswordToken == null)
+        //    {
+        //        throw new EntityNotFoundException($"Given token {token} does not exist in data store");
+        //    }
+
+        //    return resetPasswordToken;
+        //}
+
+        private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token) where TTokenEntity : ITokenEntity
         {
             if (_tokenProvider.IsTokenExpired(token))
             {
                 throw new SecurityTokenExpiredException("Given token is already expired");
             }
 
-            var activationToken = await _accountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
-            if (activationToken == null)
+            var repository = _repositoryFactory.Create<TTokenEntity>();
+            var tokenEntity = await repository.SingleOrDefaultAsync(x => x.Token == token);
+            if (tokenEntity == null)
             {
                 throw new EntityNotFoundException($"Given token {token} does not exist in data store");
             }
 
-            return activationToken;
+            return tokenEntity;
+        }
+
+        private async Task<User> UserValidation(string userEmail)
+        {
+            var user = await GetUser(userEmail);
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"The user with email: {userEmail} does not exist in data store");
+            }
+
+            return user;
         }
     }
 }
