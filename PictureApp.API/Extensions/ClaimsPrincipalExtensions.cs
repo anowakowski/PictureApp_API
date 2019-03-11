@@ -7,7 +7,7 @@ namespace PictureApp.API.Extensions
     {
         public static string GetEmail(this ClaimsPrincipal principal)
         {
-            return principal.Claims.Single(x => x.Type == ClaimTypes.Email).Value;
+            return principal.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
         }
     }
 }

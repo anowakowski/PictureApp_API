@@ -51,8 +51,8 @@ namespace PictureApp.API.Services
             var password = _passwordProvider.CreatePasswordHash(userForRegister.Password);
 
             var userToCreate = _mapper.Map<User>(userForRegister);
-            userToCreate.PasswordHash = password.passwordHash;
-            userToCreate.PasswordSalt = password.passwordSalt;
+            userToCreate.PasswordHash = password.Hash;
+            userToCreate.PasswordSalt = password.Salt;
             userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
 
             await UserRepository.AddAsync(userToCreate);
@@ -86,9 +86,12 @@ namespace PictureApp.API.Services
         {
             var user = await UserValidation(email);
 
-            var password = _passwordProvider.CreatePasswordHash(oldPassword);
+            //var password = _passwordProvider.CreatePasswordHash(oldPassword);
+            var computedPassword = _passwordProvider.CreatePasswordHash(oldPassword, System.Text.Encoding.UTF8.GetString(user.PasswordSalt));
 
-            if (user.PasswordHash != password.passwordHash)
+            //if (user.PasswordHash != password.passwordHash)
+            var userPassword = ComputedPassword.Create(user.PasswordHash, user.PasswordSalt);
+            if (userPassword != computedPassword)
             {
                 throw new ArgumentException("The given old password does not fit to the current user password");
             }
@@ -98,9 +101,13 @@ namespace PictureApp.API.Services
                 throw new ArgumentException("The new password is different than retyped new password");
             }
 
-            password = _passwordProvider.CreatePasswordHash(newPassword);
-            user.PasswordHash = password.passwordHash;
-            user.PasswordSalt = password.passwordSalt;
+            //password = _passwordProvider.CreatePasswordHash(newPassword);
+            //user.PasswordHash = password.passwordHash;
+            //user.PasswordSalt = password.passwordSalt;
+
+            computedPassword = _passwordProvider.CreatePasswordHash(newPassword);
+            user.PasswordHash = computedPassword.Hash;
+            user.PasswordSalt = computedPassword.Salt;
 
             UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
@@ -138,9 +145,9 @@ namespace PictureApp.API.Services
             var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
 
             // - set new password to the user
-            var (passwordHash, passwordSalt) = _passwordProvider.CreatePasswordHash(newPassword);
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            var computedPassword = _passwordProvider.CreatePasswordHash(newPassword);
+            user.PasswordHash = computedPassword.Hash;
+            user.PasswordSalt = computedPassword.Salt;
 
             // - save user with new password
             UserRepository.Update(user);

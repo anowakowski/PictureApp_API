@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using FluentAssertions;
 using NUnit.Framework;
 using PictureApp.API.Extensions;
@@ -66,6 +67,32 @@ namespace PictureApp.API.Tests.Providers
 
             // ASSERT
             actual.Should().BeFalse();
+        }
+
+        [Test]
+        public void PasswordTest()
+        {
+            var plainPassword = "password";
+            byte[] passwordHash1;
+            byte[] passwordHash2;
+            byte[] passwordSalt;
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passwordHash1 = hmac.ComputeHash(Encoding.UTF8.GetBytes(plainPassword));
+                passwordSalt = hmac.Key;
+                //return (hmac.ComputeHash(Encoding.UTF8.GetBytes(password)), hmac.Key);
+            }
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            {
+                passwordHash2 = hmac.ComputeHash(Encoding.UTF8.GetBytes(plainPassword));               
+                //return (hmac.ComputeHash(Encoding.UTF8.GetBytes(password)), hmac.Key);
+            }
+
+            if (passwordHash1 == passwordHash2)
+            {
+                Console.WriteLine("They are common");
+            }
         }
     }
 }

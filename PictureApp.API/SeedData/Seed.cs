@@ -23,9 +23,9 @@ namespace PictureApp.API.SeedData
             
             users.ForEach(user => 
             {
-                var (passwordHash, passwordSalt) = passwordProvider.CreatePasswordHash("password");
-                user.PasswordHash = passwordHash;
-                user.PasswordSalt = passwordSalt;
+                var computedPassword = passwordProvider.CreatePasswordHash("password");
+                user.PasswordHash = computedPassword.Hash;
+                user.PasswordSalt = computedPassword.Salt;
                 user.Username = user.Username.ToLower();
             });
 

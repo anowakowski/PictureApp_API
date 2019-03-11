@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using MediatR;
@@ -125,16 +126,20 @@ namespace PictureApp.API.Controllers
                 if (userForLoggedDto == null)
                     return Unauthorized();
 
-                var token = _authTokenProvider.GetToken(
+                var claims = new List<Claim>
+                {
                     new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
                     new Claim(ClaimTypes.Email, userForLoggedDto.Email),
-                    new Claim(ClaimTypes.Name, userForLoggedDto.Username));
+                    new Claim(ClaimTypes.Name, userForLoggedDto.Username)
+                };
+                //User.AddIdentity(new ClaimsIdentity(claims));
+
+                var token = _authTokenProvider.GetToken(claims.ToArray());
 
                 return Ok(new
                 {
                     token = token
-                });
-
+                });                
             }
             catch (EntityNotFoundException ex)
             {
