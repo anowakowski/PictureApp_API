@@ -6,7 +6,7 @@
 
         ComputedPassword CreatePasswordHash(string plainPassword);
 
-        ComputedPassword CreatePasswordHash(string plainPassword, string salt);
+        ComputedPassword CreatePasswordHash(string plainPassword, byte[] salt);
 
 
         bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt);

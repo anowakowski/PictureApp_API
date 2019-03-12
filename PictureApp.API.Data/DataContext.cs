@@ -13,6 +13,8 @@ namespace PictureApp.API.Data
 
         public DbSet<AccountActivationToken> AccountActivationTokens { get; set; }
 
+        public DbSet<ResetPasswordToken> ResetPasswordTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -23,8 +25,17 @@ namespace PictureApp.API.Data
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Following)
                 .WithOne(f => f.Followee)
-                .HasForeignKey(f => f.FolloweeId);                
-        }
+                .HasForeignKey(f => f.FolloweeId);
 
+            modelBuilder.Entity<User>()
+                .HasOne(x => x.ResetPasswordToken)
+                .WithOne(x => x.User)
+                .HasForeignKey<ResetPasswordToken>(x => x.UserId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(x => x.ActivationToken)
+                .WithOne(x => x.User)
+                .HasForeignKey<AccountActivationToken>(x => x.UserId);
+        }
     }
 }

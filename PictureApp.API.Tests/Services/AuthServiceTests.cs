@@ -270,5 +270,20 @@ namespace PictureApp.API.Tests.Services
             return false;
         }
         */
+
+        [Test]
+        public void ComputedPassword()
+        {
+            var provider = new PasswordProvider();
+            var pass1 = provider.CreatePasswordHash("password");            
+            var salt = pass1.Salt;
+
+            var pass2 = provider.CreatePasswordHash("password", salt);
+
+            if (pass1 == pass2)
+            {
+                Console.WriteLine("equal");
+            }
+        }
     }
 }

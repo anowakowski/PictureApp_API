@@ -87,7 +87,7 @@ namespace PictureApp.API.Services
             var user = await UserValidation(email);
 
             //var password = _passwordProvider.CreatePasswordHash(oldPassword);
-            var computedPassword = _passwordProvider.CreatePasswordHash(oldPassword, System.Text.Encoding.UTF8.GetString(user.PasswordSalt));
+            var computedPassword = _passwordProvider.CreatePasswordHash(oldPassword, user.PasswordSalt);
 
             //if (user.PasswordHash != password.passwordHash)
             var userPassword = ComputedPassword.Create(user.PasswordHash, user.PasswordSalt);

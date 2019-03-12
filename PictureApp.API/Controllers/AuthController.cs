@@ -126,23 +126,20 @@ namespace PictureApp.API.Controllers
                 if (userForLoggedDto == null)
                     return Unauthorized();
 
-                var claims = new List<Claim>
-                {
+                var token = _authTokenProvider.GetToken(
                     new Claim(ClaimTypes.NameIdentifier, userForLoggedDto.Id.ToString()),
                     new Claim(ClaimTypes.Email, userForLoggedDto.Email),
                     new Claim(ClaimTypes.Name, userForLoggedDto.Username)
-                };
-                //User.AddIdentity(new ClaimsIdentity(claims));
-
-                var token = _authTokenProvider.GetToken(claims.ToArray());
+                );
 
                 return Ok(new
                 {
-                    token = token
+                    token
                 });                
             }
             catch (EntityNotFoundException ex)
             {
+                // TODO: provide support for NotAuthorizedException exception
                 return NotFound(ex.Message);
             }
         }        
