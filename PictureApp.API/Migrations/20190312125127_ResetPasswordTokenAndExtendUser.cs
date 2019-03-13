@@ -7,7 +7,7 @@ namespace PictureApp.API.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ResetPasswordToken",
+                name: "ResetPasswordTokens",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -17,9 +17,9 @@ namespace PictureApp.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ResetPasswordToken", x => x.Id);
+                    table.PrimaryKey("PK_ResetPasswordTokens", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ResetPasswordToken_Users_UserId",
+                        name: "FK_ResetPasswordTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -27,8 +27,8 @@ namespace PictureApp.API.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ResetPasswordToken_UserId",
-                table: "ResetPasswordToken",
+                name: "IX_ResetPasswordTokens_UserId",
+                table: "ResetPasswordTokens",
                 column: "UserId",
                 unique: true);
         }
@@ -36,7 +36,7 @@ namespace PictureApp.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ResetPasswordToken");
+                name: "ResetPasswordTokens");
         }
     }
 }

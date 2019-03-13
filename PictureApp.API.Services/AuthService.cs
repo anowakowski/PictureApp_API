@@ -121,6 +121,7 @@ namespace PictureApp.API.Services
 
             // - generate token for password reset                         
             var newToken = CreateToken<ResetPasswordToken>();
+            newToken.User = user;
 
             // - check whether token is already exist
             //   if so delete it and save the new one
@@ -148,6 +149,7 @@ namespace PictureApp.API.Services
             var computedPassword = _passwordProvider.CreatePasswordHash(newPassword);
             user.PasswordHash = computedPassword.Hash;
             user.PasswordSalt = computedPassword.Salt;
+            user.ResetPasswordToken = null;
 
             // - save user with new password
             UserRepository.Update(user);
