@@ -22,20 +22,34 @@ namespace PictureApp.API.Tests.Services
     [TestFixture]
     public class AuthServiceTests
     {
-        // TODO: provide method, which will create instance of a SUT
-        /*
+        private IAuthService _sut;
+        private IUnitOfWork _unitOfWork;
+        private IMapper _mapper;
+        private ITokenProvider _tokenProvider;
+        private IPasswordProvider _passwordProvider;
+        private IRepositoryFactory _repositoryFactory;
+        private IRepository<AccountActivationToken> _accountActivationTokenRepository;
+        private IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
+        private IRepository<User> _userRepository;
+
+        public AuthServiceTests()
+        {
+            Init();
+        }
+
+        // TODO: provide method, which will create instance of a SUT        
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<ITokenProvider>();
-            activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(true);
-            var service = new AuthService(Substitute.For<IRepository<User>>(),
-                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
+            //var activationTokenProvider = Substitute.For<ITokenProvider>();
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(true);
+            //var service = new AuthService(Substitute.For<IRepository<User>>(),
+            //    Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
+            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
 
             // ACT
-            Func<Task> action = async () => await service.Activate("the expired token");
+            Func<Task> action = async () => await _sut.Activate("the expired token");
 
             // ASSERT
             action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired");
@@ -45,18 +59,17 @@ namespace PictureApp.API.Tests.Services
         public void Activate_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<ITokenProvider>();
-            activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
-            var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
-            accountActivationTokenRepository
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
+            //var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            _accountActivationTokenRepository
                 .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
                 .Returns(x => (AccountActivationToken) null);
-            var service = new AuthService(Substitute.For<IRepository<User>>(),
-                accountActivationTokenRepository, Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
+            //var service = new AuthService(Substitute.For<IRepository<User>>(),
+            //    accountActivationTokenRepository, Substitute.For<IUnitOfWork>(),
+            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
 
             // ACT
-            Func<Task> action = async () => await service.Activate("the token");
+            Func<Task> action = async () => await _sut.Activate("the token");
 
             // ASSERT
             action.Should().Throw<EntityNotFoundException>().WithMessage("Given token the token does not exist in data store");
@@ -66,13 +79,13 @@ namespace PictureApp.API.Tests.Services
         public async Task Activate_WhenCalledAndTokenNotExpired_FullAccountActivationExpected()
         {
             // ARRANGE
-            var activationTokenProvider = Substitute.For<ITokenProvider>();
-            activationTokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
+            //var activationTokenProvider = Substitute.For<ITokenProvider>();
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
             var actualUser = new User {Id = 99};
             var actualActivationToken = new AccountActivationToken
                 {Token = "The token", UserId = actualUser.Id};
-            var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
-            accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
+            //var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            _accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
                 .Returns(x =>
                     {
                         var store = new List<AccountActivationToken> { actualActivationToken };
@@ -81,16 +94,16 @@ namespace PictureApp.API.Tests.Services
                 );
             actualUser.ActivationToken = actualActivationToken;
             AccountActivationToken tokenToDelete = null;
-            accountActivationTokenRepository.When(x => x.Delete(Arg.Any<AccountActivationToken>()))
+            _accountActivationTokenRepository.When(x => x.Delete(Arg.Any<AccountActivationToken>()))
                 .Do(x => tokenToDelete = x.ArgAt<AccountActivationToken>(0));
-            var userRepository = Substitute.For<IRepository<User>>();
-            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            //var userRepository = Substitute.For<IRepository<User>>();
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
                 var store = new List<User> {actualUser};
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            var unitOfWork = Substitute.For<IUnitOfWork>();
-            unitOfWork.When(x => x.CompleteAsync()).Do(x =>
+            //var unitOfWork = Substitute.For<IUnitOfWork>();
+            _unitOfWork.When(x => x.CompleteAsync()).Do(x =>
             {
                 if (tokenToDelete != null && tokenToDelete.UserId == actualActivationToken.UserId)
                 {
@@ -98,17 +111,18 @@ namespace PictureApp.API.Tests.Services
                 }
             });
             var expected = new User {Id = 99, IsAccountActivated = true};
-            var service = new AuthService(userRepository,
-                accountActivationTokenRepository, unitOfWork,
-                Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
+            //var service = new AuthService(userRepository,
+            //    accountActivationTokenRepository, unitOfWork,
+            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
 
             // ACT
-            await service.Activate(actualActivationToken.Token);
+            await _sut.Activate(actualActivationToken.Token);
 
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
         }
 
+        /*
         [Test]
         public void ChangePassword_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
@@ -226,8 +240,30 @@ namespace PictureApp.API.Tests.Services
             await unitOfWork.Received().CompleteAsync();
             userToUpdate.Should().BeEquivalentTo(expectedUserToUpdate);
         }
-    }
+        */
 
+        // TODO
+        // consider which test would be useful in terms of reset/changed password feature
+
+        private void Init()
+        {
+            _unitOfWork = Substitute.For<IUnitOfWork>();
+            _mapper = Substitute.For<IMapper>();
+            _tokenProvider = Substitute.For<ITokenProvider>();
+            _passwordProvider = Substitute.For<IPasswordProvider>();
+
+            _repositoryFactory = Substitute.For<IRepositoryFactory>();
+            _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();            
+            _repositoryFactory.Create<AccountActivationToken>().Returns(_accountActivationTokenRepository);
+            _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
+            _repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
+            _userRepository = Substitute.For<IRepository<User>>();
+            _repositoryFactory.Create<User>().Returns(_userRepository);
+
+            _sut = new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider);
+        }
+    }
+    /*
     internal class MockPasswordProvider : IPasswordProvider
     {
         private readonly IDictionary<string, (byte[] passwordHash, byte[] passwordSalt)> _passwords;
@@ -269,21 +305,5 @@ namespace PictureApp.API.Tests.Services
 
             return false;
         }
-        */
-
-        [Test]
-        public void ComputedPassword()
-        {
-            var provider = new PasswordProvider();
-            var pass1 = provider.CreatePasswordHash("password");            
-            var salt = pass1.Salt;
-
-            var pass2 = provider.CreatePasswordHash("password", salt);
-
-            if (pass1 == pass2)
-            {
-                Console.WriteLine("equal");
-            }
-        }
-    }
+    }*/
 }

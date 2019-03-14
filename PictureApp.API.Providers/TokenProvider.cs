@@ -6,9 +6,32 @@ namespace PictureApp.API.Providers
 {
     public class TokenProvider : ITokenProvider
     {
-        private const int ExpirationTimeInHours = 24;
+        private const int ExpirationTimeInHours = 24; // TODO: move expiration time outside the class
 
-        public string CreateToken()
+        public class Token
+        {
+            private int _expirationTimeInHours;
+
+            private Token(string data, int expirationTimeInHours)
+            {
+                Data = data;
+                _expirationTimeInHours = expirationTimeInHours;
+            }
+
+            public Token Create(string data, int expirationTimeInHours)
+            {
+                return new Token(data, expirationTimeInHours);
+            }
+
+            public bool IsExpired()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string Data { get; }
+        }
+
+        public string CreateToken() // TODO: pass expiration time
         {
             var whenCreated = BitConverter.GetBytes(SystemTime.Now().ToBinary());
             var key = SystemGuid.NewGuid().ToByteArray();
@@ -24,5 +47,8 @@ namespace PictureApp.API.Providers
 
         // TODO: it is useful to have Token class?
         // - isTokenExpired - when class is created than there can be easily pass expiration time in hours
-    }
+
+        // TODO:
+        // provide string extension toToken()
+    }    
 }
