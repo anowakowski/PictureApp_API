@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
@@ -21,6 +22,7 @@ namespace PictureApp.API.Services
         private readonly ITokenProvider _tokenProvider;
         private readonly IPasswordProvider _passwordProvider;
         private readonly IRepositoryFactory _repositoryFactory;
+        private readonly IConfiguration _configuration;
 
         private IRepository<User> UserRepository => _repositoryFactory.Create<User>();
         private IRepository<AccountActivationToken> AccountActivationTokenRepository =>
@@ -30,7 +32,7 @@ namespace PictureApp.API.Services
 
         public AuthService(IRepositoryFactory repositoryFactory, /*IRepository<User> userRepository,
             IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository,*/ IUnitOfWork unitOfWork,
-            IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider)
+            IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider, IConfiguration configuration)
         {
             //_userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             //_accountActivationTokenRepository = accountActivationTokenRepository ??
@@ -42,6 +44,7 @@ namespace PictureApp.API.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
             _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
@@ -121,17 +124,25 @@ namespace PictureApp.API.Services
 
             // - generate token for password reset                         
             var newToken = CreateToken<ResetPasswordToken>();
-            newToken.User = user;
+            //newToken.User = user;
 
             // - check whether token is already exist
-            //   if so delete it and save the new one
-            var oldToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
-            if (oldToken != null)
+            //   if so delete it and save the new one            
+            //var oldToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
+            //if (oldToken != null)
+            //{
+            //    ResetPasswordTokenRepository.Delete(oldToken);
+            //}
+
+            if (user.ResetPasswordToken != null)
             {
-                ResetPasswordTokenRepository.Delete(oldToken);
+                ResetPasswordTokenRepository.Delete(user.ResetPasswordToken);
             }
-            
-            await ResetPasswordTokenRepository.AddAsync(newToken);
+
+            user.ResetPasswordToken = newToken;
+
+            //await ResetPasswordTokenRepository.AddAsync(newToken);
+            UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();            
         }
 
@@ -222,7 +233,7 @@ namespace PictureApp.API.Services
         //    return resetPasswordToken;
         //}
 
-        private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token) where TTokenEntity : ITokenEntity
+        private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token) where TTokenEntity : ITokenEntity // TODO: provide expiration time for token
         {
             if (_tokenProvider.IsTokenExpired(token))
             {

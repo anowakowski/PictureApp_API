@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MoreLinq.Extensions;
 using NSubstitute;
@@ -22,7 +23,6 @@ namespace PictureApp.API.Tests.Services
     [TestFixture]
     public class AuthServiceTests
     {
-        private IAuthService _sut;
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
         private ITokenProvider _tokenProvider;
@@ -31,25 +31,34 @@ namespace PictureApp.API.Tests.Services
         private IRepository<AccountActivationToken> _accountActivationTokenRepository;
         private IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
         private IRepository<User> _userRepository;
+        private IConfiguration _configuration;
 
-        public AuthServiceTests()
+        [SetUp]
+        public void SetUp()
         {
-            Init();
-        }
+            _unitOfWork = Substitute.For<IUnitOfWork>();
+            _mapper = Substitute.For<IMapper>();
+            _tokenProvider = Substitute.For<ITokenProvider>();
+            _passwordProvider = Substitute.For<IPasswordProvider>();
+            _configuration = Substitute.For<IConfiguration>();
 
-        // TODO: provide method, which will create instance of a SUT        
+            _repositoryFactory = Substitute.For<IRepositoryFactory>();
+            _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            _repositoryFactory.Create<AccountActivationToken>().Returns(x => _accountActivationTokenRepository);
+            _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
+            _repositoryFactory.Create<ResetPasswordToken>().Returns(x => _resetPasswordTokenRepository);
+            _userRepository = Substitute.For<IRepository<User>>();
+            _repositoryFactory.Create<User>().Returns(x => _userRepository);
+        }
+        
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
             // ARRANGE
-            //var activationTokenProvider = Substitute.For<ITokenProvider>();
             _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(true);
-            //var service = new AuthService(Substitute.For<IRepository<User>>(),
-            //    Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
 
             // ACT
-            Func<Task> action = async () => await _sut.Activate("the expired token");
+            Func<Task> action = async () => await GetSUT().Activate("the expired token");
 
             // ASSERT
             action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired");
@@ -60,49 +69,43 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
-            //var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
             _accountActivationTokenRepository
                 .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
-                .Returns(x => (AccountActivationToken) null);
-            //var service = new AuthService(Substitute.For<IRepository<User>>(),
-            //    accountActivationTokenRepository, Substitute.For<IUnitOfWork>(),
-            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
+                .Returns(x => (AccountActivationToken) null);            
 
             // ACT
-            Func<Task> action = async () => await _sut.Activate("the token");
+            Func<Task> action = async () => await GetSUT().Activate("the token");
 
             // ASSERT
-            action.Should().Throw<EntityNotFoundException>().WithMessage("Given token the token does not exist in data store");
+            action.Should().Throw<EntityNotFoundException>()
+                .WithMessage("Given token the token does not exist in data store");
         }
 
         [Test]
         public async Task Activate_WhenCalledAndTokenNotExpired_FullAccountActivationExpected()
         {
             // ARRANGE
-            //var activationTokenProvider = Substitute.For<ITokenProvider>();
             _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
             var actualUser = new User {Id = 99};
             var actualActivationToken = new AccountActivationToken
-                {Token = "The token", UserId = actualUser.Id};
-            //var accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
-            _accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
+                {Token = "The token", UserId = actualUser.Id};            
+            _accountActivationTokenRepository
+                .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
                 .Returns(x =>
                     {
-                        var store = new List<AccountActivationToken> { actualActivationToken };
+                        var store = new List<AccountActivationToken> {actualActivationToken};
                         return store.Single(x.ArgAt<Expression<Func<AccountActivationToken, bool>>>(0).Compile());
                     }
                 );
             actualUser.ActivationToken = actualActivationToken;
             AccountActivationToken tokenToDelete = null;
             _accountActivationTokenRepository.When(x => x.Delete(Arg.Any<AccountActivationToken>()))
-                .Do(x => tokenToDelete = x.ArgAt<AccountActivationToken>(0));
-            //var userRepository = Substitute.For<IRepository<User>>();
+                .Do(x => tokenToDelete = x.ArgAt<AccountActivationToken>(0));            
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
                 var store = new List<User> {actualUser};
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            //var unitOfWork = Substitute.For<IUnitOfWork>();
             _unitOfWork.When(x => x.CompleteAsync()).Do(x =>
             {
                 if (tokenToDelete != null && tokenToDelete.UserId == actualActivationToken.UserId)
@@ -111,32 +114,24 @@ namespace PictureApp.API.Tests.Services
                 }
             });
             var expected = new User {Id = 99, IsAccountActivated = true};
-            //var service = new AuthService(userRepository,
-            //    accountActivationTokenRepository, unitOfWork,
-            //    Substitute.For<IMapper>(), activationTokenProvider, Substitute.For<IPasswordProvider>());
 
             // ACT
-            await _sut.Activate(actualActivationToken.Token);
+            await GetSUT().Activate(actualActivationToken.Token);
 
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
         }
 
-        /*
         [Test]
         public void ChangePassword_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            var userRepository = Substitute.For<IRepository<User>>();
-            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User) null);
-            var service = new AuthService(userRepository,
-                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User) null);
             var email = "user@post.com";
 
             // ACT
             Func<Task> action = async () =>
-                await service.ChangePassword(email, "the old password", "the new password",
+                await GetSUT().ChangePassword(email, "the old password", "the new password",
                     "the new password");
 
             // ASSERT
@@ -148,20 +143,17 @@ namespace PictureApp.API.Tests.Services
         public void ChangePassword_WhenCalledAndOldPasswordIsDifferentThanUsersCurrentOne_ArgumentExceptionExpected()
         {
             // ARRANGE
-            var userRepository = Substitute.For<IRepository<User>>();
-            var user = new User {Email = "user@post.com", PasswordHash = Encoding.ASCII.GetBytes("current password hash")};
-            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            var user = new User
+                {Email = "user@post.com", PasswordHash = Encoding.ASCII.GetBytes("current password hash")};
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
-                var store = new List<User> { user };
+                var store = new List<User> {user};
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            var service = new AuthService(userRepository,
-                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), Substitute.For<IPasswordProvider>());
-            
+
             // ACT
             Func<Task> action = async () =>
-                await service.ChangePassword(user.Email, "the old password", "the new password",
+                await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
                     "the new password");
 
             // ASSERT
@@ -173,26 +165,22 @@ namespace PictureApp.API.Tests.Services
         public void ChangePassword_WhenCalledAndNewPasswordIsDifferentThanRetypedPassword_ArgumentExceptionExpected()
         {
             // ARRANGE
-            var userRepository = Substitute.For<IRepository<User>>();
             var user = new User
             {
                 Email = "user@post.com",
                 PasswordHash = Encoding.ASCII.GetBytes("current password hash"),
                 PasswordSalt = Encoding.ASCII.GetBytes("current password salt")
             };
-            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
-                var store = new List<User> { user };
+                var store = new List<User> {user};
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
-            });
-            var passwordProvider = new MockPasswordProvider(("the old password", user.PasswordHash, user.PasswordSalt));            
-            var service = new AuthService(userRepository,
-                Substitute.For<IRepository<AccountActivationToken>>(), Substitute.For<IUnitOfWork>(),
-                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), passwordProvider);
+            });            
+            _passwordProvider = new MockPasswordProvider(("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
 
             // ACT
             Func<Task> action = async () =>
-                await service.ChangePassword(user.Email, "the old password", "the new password",
+                await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
                     "the different retyped new password");
 
             // ASSERT
@@ -204,27 +192,24 @@ namespace PictureApp.API.Tests.Services
         public async Task ChangePassword_WhenCalledAndAllPassingDataAreAppropriate_AttemptToSaveNewPasswordForGivenUserExpected()
         {
             // ARRANGE
-            var userRepository = Substitute.For<IRepository<User>>();
             var user = new User
             {
                 Email = "user@post.com",
                 PasswordHash = Encoding.ASCII.GetBytes("current password hash"),
                 PasswordSalt = Encoding.ASCII.GetBytes("current password salt")
             };
-            userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
                 var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
             User userToUpdate = null;
-            userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => userToUpdate = x.ArgAt<User>(0));
-            var passwordProvider = new MockPasswordProvider(("the old password", user.PasswordHash, user.PasswordSalt),
-                ("the new password", Encoding.ASCII.GetBytes("the new password hash"),
-                    Encoding.ASCII.GetBytes("the new password salt")));
-            var unitOfWork = Substitute.For<IUnitOfWork>();
-            var service = new AuthService(userRepository,
-                Substitute.For<IRepository<AccountActivationToken>>(), unitOfWork,
-                Substitute.For<IMapper>(), Substitute.For<ITokenProvider>(), passwordProvider);
+            _userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => userToUpdate = x.ArgAt<User>(0));
+            _passwordProvider = new MockPasswordProvider(
+                ("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)),
+                ("the new password",
+                    ComputedPassword.Create(Encoding.ASCII.GetBytes("the new password hash"),
+                        Encoding.ASCII.GetBytes("the new password salt"))));
             var expectedUserToUpdate = new User
             {
                 Email = user.Email,
@@ -233,71 +218,62 @@ namespace PictureApp.API.Tests.Services
             };
 
             // ACT            
-            await service.ChangePassword(user.Email, "the old password", "the new password",
+            await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
                 "the new password");
 
             // ASSERT
-            await unitOfWork.Received().CompleteAsync();
+            await _unitOfWork.Received().CompleteAsync();
             userToUpdate.Should().BeEquivalentTo(expectedUserToUpdate);
         }
-        */
 
         // TODO
         // consider which test would be useful in terms of reset/changed password feature
+        // - ResetPasswordRequest
+        //   + when the email not linked to any user EntityNotFoundException
+        //   + when the old token exists - delete it
+        //   + link new token with user and save it
+        // - ResetPassword
+        //   + when token is expired SecurityTokenExpiredException
+        //   + when token not exists in data store EntityNotFoundException
+        //   + save user with new password
 
-        private void Init()
+        private IAuthService GetSUT()
         {
-            _unitOfWork = Substitute.For<IUnitOfWork>();
-            _mapper = Substitute.For<IMapper>();
-            _tokenProvider = Substitute.For<ITokenProvider>();
-            _passwordProvider = Substitute.For<IPasswordProvider>();
-
-            _repositoryFactory = Substitute.For<IRepositoryFactory>();
-            _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();            
-            _repositoryFactory.Create<AccountActivationToken>().Returns(_accountActivationTokenRepository);
-            _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
-            _repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
-            _userRepository = Substitute.For<IRepository<User>>();
-            _repositoryFactory.Create<User>().Returns(_userRepository);
-
-            _sut = new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider);
+            return new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider, _configuration);
         }
     }
-    /*
+
     internal class MockPasswordProvider : IPasswordProvider
     {
-        private readonly IDictionary<string, (byte[] passwordHash, byte[] passwordSalt)> _passwords;
+        private readonly IDictionary<string, ComputedPassword> _passwords;
 
-        public MockPasswordProvider(params (string password, byte[] passwordHash, byte[] passwordSalt)[] passwords)
+        public MockPasswordProvider(params (string password, ComputedPassword computedPassword)[] passwords)
         {
-            _passwords = new Dictionary<string, (byte[] passwordHash, byte[] passwordSalt)>();
-            passwords.ForEach(x => _passwords.Add(x.password, (x.passwordHash, x.passwordSalt)));
+            _passwords = new Dictionary<string, ComputedPassword>();
+            passwords.ForEach(x => _passwords.Add(x.password, x.computedPassword));
         }
 
-        public void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        public ComputedPassword CreatePasswordHash(string plainPassword, byte[] salt)
         {
-            var pass = _passwords[password];
-            passwordHash = pass.passwordHash;
-            passwordSalt = pass.passwordSalt;
+            return _passwords[plainPassword];
         }
 
-        public (byte[] passwordHash, byte[] passwordSalt) CreatePasswordHash(string password)
+        ComputedPassword IPasswordProvider.CreatePasswordHash(string plainPassword)
         {
-            var pass = _passwords[password];
-            return (pass.passwordHash, pass.passwordSalt);
+            return _passwords[plainPassword];
         }
 
         public bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             var pass = _passwords[password];
-            if (passwordHash.Length == pass.passwordHash.Length && passwordSalt.Length == pass.passwordSalt.Length)
+            if (passwordHash.Length == pass.Hash.Length && passwordSalt.Length == pass.Salt.Length)
             {
-                if (passwordHash.Where((t, i) => t != pass.passwordHash[i]).Any())
+                if (passwordHash.Where((t, i) => t != pass.Hash[i]).Any())
                 {
                     return false;
                 }
 
-                if (passwordSalt.Where((t, i) => t != pass.passwordSalt[i]).Any())
+                if (passwordSalt.Where((t, i) => t != pass.Salt[i]).Any())
                 {
                     return false;
                 }
@@ -305,5 +281,5 @@ namespace PictureApp.API.Tests.Services
 
             return false;
         }
-    }*/
+    }
 }
