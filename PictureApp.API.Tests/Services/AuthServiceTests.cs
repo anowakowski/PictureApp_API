@@ -227,16 +227,154 @@ namespace PictureApp.API.Tests.Services
             userToUpdate.Should().BeEquivalentTo(expectedUserToUpdate);
         }
 
-        // TODO
-        // consider which test would be useful in terms of reset/changed password feature
-        // - ResetPasswordRequest
-        //   + when the email not linked to any user EntityNotFoundException
-        //   + when the old token exists - delete it
-        //   + link new token with user and save it
-        // - ResetPassword
-        //   + when token is expired SecurityTokenExpiredException
-        //   + when token not exists in data store EntityNotFoundException
-        //   + save user with new password
+        [Test]
+        public void ResetPasswordRequest_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
+        {
+            // ARRANGE
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
+            var email = "user@post.com";
+
+            // ACT
+            Func<Task> action = async () => await GetSUT().ResetPasswordRequest(email);
+
+            // ASSERT
+            action.Should().Throw<EntityNotFoundException>()
+                .WithMessage($"The user with email: {email} does not exist in data store");
+        }
+
+        [Test]
+        public async Task ResetPasswordRequest_WhenCalledAndOldResetPasswordTokenExists_AttemptToDeleteTheOldOneExpected()
+        {
+            // ARRANGE
+            var email = "user@post.com";
+            var oldToken = "the old token";
+            var user = new User
+            {
+                Email = email,
+                ResetPasswordToken = new ResetPasswordToken {Token = oldToken}
+            };
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { user };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            string resetPasswordTokenToDelete = null;
+            _resetPasswordTokenRepository.When(x => x.Delete(Arg.Any<ResetPasswordToken>()))
+                .Do(x => resetPasswordTokenToDelete = x.ArgAt<ResetPasswordToken>(0).Token);
+
+            // ACT
+            await GetSUT().ResetPasswordRequest(email);
+
+            // ASSERT            
+            resetPasswordTokenToDelete.Should().BeEquivalentTo(oldToken);
+            await _unitOfWork.Received().CompleteAsync();
+        }
+
+        [Test]
+        public async Task ResetPasswordRequest_WhenCalled_UserWithAssociatedNewResetTokenExpected()
+        {
+            // ARRANGE
+            var email = "user@post.com";
+            var newToken = "the new token";
+            var user = new User
+            {
+                Email = email
+            };
+            _tokenProvider.CreateToken().Returns(newToken);
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { user };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            string newResetPasswordToken = null;
+            _userRepository.When(x => x.Update(Arg.Any<User>()))
+                .Do(x => newResetPasswordToken = x.ArgAt<User>(0).ResetPasswordToken.Token);
+
+            // ACT
+            await GetSUT().ResetPasswordRequest(email);
+
+            // ASSERT            
+            newResetPasswordToken.Should().BeEquivalentTo(newToken);
+            await _unitOfWork.Received().CompleteAsync();
+        }
+
+        [Test]
+        public void ResetPassword_WhenCalledAndTokenIsExpired_SecurityTokenExpiredExceptionExpected()
+        {
+            // ARRANGE            
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(true);
+            
+            // ACT
+            Func<Task> action = async () => await GetSUT().ResetPassword("the token", "the new password");
+
+            // ASSERT
+            action.Should().Throw<SecurityTokenExpiredException>()
+                .WithMessage("Given token is already expired");
+        }
+
+        [Test]
+        public void ResetPassword_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
+        {
+            // ARRANGE
+            var token = "the token";
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
+            _resetPasswordTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<ResetPasswordToken, bool>>>())
+                .Returns((ResetPasswordToken) null);
+
+            // ACT
+            Func<Task> action = async () => await GetSUT().ResetPassword(token, "the new password");
+
+            // ASSERT
+            action.Should().Throw<EntityNotFoundException>()
+                .WithMessage($"Given token {token} does not exist in data store");
+        }
+
+        [Test]
+        public async Task ResetPassword_WhenCalled_AttemptToSaveUserWithTheNewPasswordExpected()
+        {
+            // ARRANGE
+            var password = "the new password";
+            var token = new ResetPasswordToken
+            {
+                Token = "the token"
+            };            
+            _tokenProvider.IsTokenExpired(Arg.Any<string>()).Returns(false);
+            _resetPasswordTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<ResetPasswordToken, bool>>>())
+                .Returns(x =>
+                {
+                    var store = new List<ResetPasswordToken> { token };
+                    return store.Single(x.ArgAt<Expression<Func<ResetPasswordToken, bool>>>(0).Compile());
+                });
+            var user = new User
+            {
+                PasswordHash = Encoding.ASCII.GetBytes("the old password hash"),
+                PasswordSalt = Encoding.ASCII.GetBytes("the old password salt"),
+                ResetPasswordToken = new ResetPasswordToken()
+            };            
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>())
+                .Returns(x =>
+                {
+                    var store = new List<User> { user };
+                    return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+                });
+            User actualUserEntityToSave = null;
+            _userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => actualUserEntityToSave = x.ArgAt<User>(0));
+            var computedNewPassword = ComputedPassword.Create(
+                Encoding.ASCII.GetBytes("the new password hash"), Encoding.ASCII.GetBytes("the new password salt"));
+            _passwordProvider.CreatePasswordHash(password).Returns(computedNewPassword);
+            var expectedUserEntityToSave = new User
+            {
+                PasswordHash = computedNewPassword.Hash,
+                PasswordSalt = computedNewPassword.Salt
+            };
+
+            // ACT
+            await GetSUT().ResetPassword(token.Token, password);
+
+            // ASSERT
+            actualUserEntityToSave.Should().BeEquivalentTo(expectedUserEntityToSave);
+            await _unitOfWork.Received().CompleteAsync();
+        }
 
         private IAuthService GetSUT()
         {
