@@ -14,6 +14,8 @@ namespace PictureApp.API.Services
 {
     public class AuthService : IAuthService
     {
+        private const string AppSettingsAccountActivationTokenExpirationTimeInHoursKey = "AppSettings:AccountActivationTokenExpirationTimeInHours";
+        private const string AppSettingsResetPasswordTokenExpirationTimeInHoursKey = "AppSettings:ResetPasswordTokenExpirationTimeInHours";
         //private readonly IRepository<User> _userRepository;
         //private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
         //private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
@@ -64,7 +66,8 @@ namespace PictureApp.API.Services
 
         public async Task Activate(string token)
         {
-            var activationToken = await TokenValidation<AccountActivationToken>(token);
+            var expirationTime = int.Parse(_configuration.GetSection(AppSettingsAccountActivationTokenExpirationTimeInHoursKey).Value);
+            var activationToken = await TokenValidation<AccountActivationToken>(token, expirationTime);
             //if (_tokenProvider.IsTokenExpired(token))
             //{
             //    throw new SecurityTokenExpiredException("Given token is already expired");
@@ -150,8 +153,9 @@ namespace PictureApp.API.Services
         {
             // TODO:            
             // - check whether token is valid            
-            // - check whether token exists            
-            var resetToken = await TokenValidation<ResetPasswordToken>(token);
+            // - check whether token exists
+            var expirationTime =  int.Parse(_configuration.GetSection(AppSettingsResetPasswordTokenExpirationTimeInHoursKey).Value);
+            var resetToken = await TokenValidation<ResetPasswordToken>(token, expirationTime);
 
             // - get user by token
             var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
@@ -233,9 +237,9 @@ namespace PictureApp.API.Services
         //    return resetPasswordToken;
         //}
 
-        private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token) where TTokenEntity : ITokenEntity // TODO: provide expiration time for token
+        private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token, int expirationTime) where TTokenEntity : ITokenEntity
         {
-            if (_tokenProvider.IsTokenExpired(token))
+            if (_tokenProvider.IsTokenExpired(token, expirationTime))
             {
                 throw new SecurityTokenExpiredException("Given token is already expired");
             }

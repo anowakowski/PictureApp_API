@@ -4,6 +4,6 @@
     {
         string CreateToken();
 
-        bool IsTokenExpired(string token);
+        bool IsTokenExpired(string token, int expirationTimeInHours);
     }
 }

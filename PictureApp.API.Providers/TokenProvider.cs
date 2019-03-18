@@ -6,7 +6,7 @@ namespace PictureApp.API.Providers
 {
     public class TokenProvider : ITokenProvider
     {
-        private const int ExpirationTimeInHours = 24; // TODO: move expiration time outside the class
+        //private const int ExpirationTimeInHours = 24; // TODO: move expiration time outside the class
 
         //public class Token
         //{
@@ -49,11 +49,11 @@ namespace PictureApp.API.Providers
         //    throw new NotImplementedException();
         //}
 
-        public bool IsTokenExpired(string token)
+        public bool IsTokenExpired(string token, int expirationTimeInHours)
         {
             var data = Convert.FromBase64String(token);
             return DateTime.FromBinary(BitConverter.ToInt64(data, 0)) <
-                   SystemTime.Now().AddHours(-ExpirationTimeInHours);
+                   SystemTime.Now().AddHours(-expirationTimeInHours);
         }
 
         // TODO: it is useful to have Token class?

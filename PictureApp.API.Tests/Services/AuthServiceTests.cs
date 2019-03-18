@@ -51,6 +51,7 @@ namespace PictureApp.API.Tests.Services
             _repositoryFactory.Create<User>().Returns(x => _userRepository);
         }
         
+        /*
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
@@ -121,7 +122,7 @@ namespace PictureApp.API.Tests.Services
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
         }
-
+        */
         [Test]
         public void ChangePassword_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
