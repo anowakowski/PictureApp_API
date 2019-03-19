@@ -16,9 +16,7 @@ namespace PictureApp.API.Services
     {
         private const string AppSettingsAccountActivationTokenExpirationTimeInHoursKey = "AppSettings:AccountActivationTokenExpirationTimeInHours";
         private const string AppSettingsResetPasswordTokenExpirationTimeInHoursKey = "AppSettings:ResetPasswordTokenExpirationTimeInHours";
-        //private readonly IRepository<User> _userRepository;
-        //private readonly IRepository<AccountActivationToken> _accountActivationTokenRepository;
-        //private readonly IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ITokenProvider _tokenProvider;
@@ -32,15 +30,9 @@ namespace PictureApp.API.Services
         private IRepository<ResetPasswordToken> ResetPasswordTokenRepository =>
             _repositoryFactory.Create<ResetPasswordToken>();
 
-        public AuthService(IRepositoryFactory repositoryFactory, /*IRepository<User> userRepository,
-            IRepository<AccountActivationToken> accountActivationTokenRepository, IRepository<ResetPasswordToken> resetPasswordTokenRepository,*/ IUnitOfWork unitOfWork,
+        public AuthService(IRepositoryFactory repositoryFactory, IUnitOfWork unitOfWork,
             IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider, IConfiguration configuration)
         {
-            //_userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            //_accountActivationTokenRepository = accountActivationTokenRepository ??
-            //                                    throw new ArgumentNullException(
-            //                                        nameof(accountActivationTokenRepository));
-            //_resetPasswordTokenRepository = resetPasswordTokenRepository ?? throw new ArgumentNullException(nameof(resetPasswordTokenRepository)); 
             _repositoryFactory = repositoryFactory ?? throw new ArgumentNullException(nameof(repositoryFactory));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -53,11 +45,9 @@ namespace PictureApp.API.Services
         {
             if (userForRegister == null) throw new ArgumentNullException(nameof(userForRegister));
 
-            var password = _passwordProvider.CreatePasswordHash(userForRegister.Password);
-
             var userToCreate = _mapper.Map<User>(userForRegister);
-            userToCreate.PasswordHash = password.Hash;
-            userToCreate.PasswordSalt = password.Salt;
+            SetPasswordForUser(userToCreate, userForRegister.Password);
+
             userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
 
             await UserRepository.AddAsync(userToCreate);
@@ -66,20 +56,10 @@ namespace PictureApp.API.Services
 
         public async Task Activate(string token)
         {
-            var expirationTime = int.Parse(_configuration.GetSection(AppSettingsAccountActivationTokenExpirationTimeInHoursKey).Value);
+            var expirationTime =
+                GetConfigurationSectionValue(AppSettingsAccountActivationTokenExpirationTimeInHoursKey);
             var activationToken = await TokenValidation<AccountActivationToken>(token, expirationTime);
-            //if (_tokenProvider.IsTokenExpired(token))
-            //{
-            //    throw new SecurityTokenExpiredException("Given token is already expired");
-            //}
 
-            //var activationToken = await AccountActivationTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
-            //if (activationToken == null)
-            //{
-            //    throw new EntityNotFoundException($"Given token {token} does not exist in data store");
-            //}
-
-            //var userRepository = _repositoryFactory.Create<User>();
             var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == activationToken.UserId);
 
             user.IsAccountActivated = true;
@@ -92,10 +72,8 @@ namespace PictureApp.API.Services
         {
             var user = await UserValidation(email);
 
-            //var password = _passwordProvider.CreatePasswordHash(oldPassword);
             var computedPassword = _passwordProvider.CreatePasswordHash(oldPassword, user.PasswordSalt);
 
-            //if (user.PasswordHash != password.passwordHash)
             var userPassword = ComputedPassword.Create(user.PasswordHash, user.PasswordSalt);
             if (userPassword != computedPassword)
             {
@@ -107,13 +85,7 @@ namespace PictureApp.API.Services
                 throw new ArgumentException("The new password is different than retyped new password");
             }
 
-            //password = _passwordProvider.CreatePasswordHash(newPassword);
-            //user.PasswordHash = password.passwordHash;
-            //user.PasswordSalt = password.passwordSalt;
-
-            computedPassword = _passwordProvider.CreatePasswordHash(newPassword);
-            user.PasswordHash = computedPassword.Hash;
-            user.PasswordSalt = computedPassword.Salt;
+            SetPasswordForUser(user, newPassword);
 
             UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
@@ -121,21 +93,9 @@ namespace PictureApp.API.Services
 
         public async Task ResetPasswordRequest(string email)
         {
-            // TODO:
-            // - get user by email
             var user = await UserValidation(email);
 
-            // - generate token for password reset                         
             var newToken = CreateToken<ResetPasswordToken>();
-            //newToken.User = user;
-
-            // - check whether token is already exist
-            //   if so delete it and save the new one            
-            //var oldToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
-            //if (oldToken != null)
-            //{
-            //    ResetPasswordTokenRepository.Delete(oldToken);
-            //}
 
             if (user.ResetPasswordToken != null)
             {
@@ -144,29 +104,20 @@ namespace PictureApp.API.Services
 
             user.ResetPasswordToken = newToken;
 
-            //await ResetPasswordTokenRepository.AddAsync(newToken);
             UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();            
         }
 
         public async Task ResetPassword(string token, string newPassword)
         {
-            // TODO:            
-            // - check whether token is valid            
-            // - check whether token exists
-            var expirationTime =  int.Parse(_configuration.GetSection(AppSettingsResetPasswordTokenExpirationTimeInHoursKey).Value);
+            var expirationTime =
+                GetConfigurationSectionValue(AppSettingsResetPasswordTokenExpirationTimeInHoursKey);
             var resetToken = await TokenValidation<ResetPasswordToken>(token, expirationTime);
 
-            // - get user by token
             var user = await UserRepository.SingleOrDefaultAsync(x => x.Id == resetToken.UserId);
-
-            // - set new password to the user
-            var computedPassword = _passwordProvider.CreatePasswordHash(newPassword);
-            user.PasswordHash = computedPassword.Hash;
-            user.PasswordSalt = computedPassword.Salt;
+            SetPasswordForUser(user, newPassword);
             user.ResetPasswordToken = null;
 
-            // - save user with new password
             UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
         }
@@ -197,22 +148,6 @@ namespace PictureApp.API.Services
             return await UserRepository.SingleOrDefaultAsync(x => x.Email == email.ToLower());
         }
 
-        //private AccountActivationToken CreateActivationToken()
-        //{
-        //    return new AccountActivationToken
-        //    {
-        //        Token = _tokenProvider.CreateToken()
-        //    };
-        //}
-
-        //private ResetPasswordToken CreateResetPasswordToken()
-        //{
-        //    return new ResetPasswordToken
-        //    {
-        //        Token = _tokenProvider.CreateToken()
-        //    };
-        //}
-
         private TTokenEntity CreateToken<TTokenEntity>() where TTokenEntity : ITokenEntity, new()
         {
             return new TTokenEntity
@@ -220,22 +155,6 @@ namespace PictureApp.API.Services
                 Token = _tokenProvider.CreateToken()
             };
         }
-
-        //private async Task<ResetPasswordToken> TokenValidation(string token)
-        //{
-        //    if (_tokenProvider.IsTokenExpired(token))
-        //    {
-        //        throw new SecurityTokenExpiredException("Given token is already expired");
-        //    }
-
-        //    var resetPasswordToken = await ResetPasswordTokenRepository.SingleOrDefaultAsync(x => x.Token == token);
-        //    if (resetPasswordToken == null)
-        //    {
-        //        throw new EntityNotFoundException($"Given token {token} does not exist in data store");
-        //    }
-
-        //    return resetPasswordToken;
-        //}
 
         private async Task<TTokenEntity> TokenValidation<TTokenEntity>(string token, int expirationTime) where TTokenEntity : ITokenEntity
         {
@@ -263,6 +182,18 @@ namespace PictureApp.API.Services
             }
 
             return user;
+        }
+
+        private int GetConfigurationSectionValue(string sectionName)
+        {
+            return int.Parse(_configuration.GetSection(sectionName).Value);
+        }
+
+        private void SetPasswordForUser(User user, string password)
+        {
+            var computedPassword = _passwordProvider.CreatePasswordHash(password);
+            user.PasswordHash = computedPassword.Hash;
+            user.PasswordSalt = computedPassword.Salt;
         }
     }
 }

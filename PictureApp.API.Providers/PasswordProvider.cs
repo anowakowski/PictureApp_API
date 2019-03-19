@@ -5,14 +5,6 @@ namespace PictureApp.API.Providers
 {
     public class PasswordProvider : IPasswordProvider
     {
-        //public (byte[] passwordHash, byte[] passwordSalt) CreatePasswordHash(string password)
-        //{
-        //    using (var hmac = new System.Security.Cryptography.HMACSHA512())
-        //    {
-        //        return (hmac.ComputeHash(Encoding.UTF8.GetBytes(password)), hmac.Key);
-        //    }
-        //}
-
         public ComputedPassword CreatePasswordHash(string plainPassword, byte[] salt)
         {
             return ComputePassword(plainPassword, salt);
@@ -20,7 +12,8 @@ namespace PictureApp.API.Providers
 
         public ComputedPassword CreatePasswordHash(string plainPassword)
         {
-            return ComputePassword(plainPassword, string.Empty);
+            //return ComputePassword(plainPassword, string.Empty);
+            return ComputePassword(plainPassword, null);
         }
 
         public bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
@@ -38,19 +31,19 @@ namespace PictureApp.API.Providers
             return true;
         }
 
-        private ComputedPassword ComputePassword(string plainPassword, string salt)
-        {
-            using (var hmac = string.IsNullOrEmpty(salt)
-                ? new System.Security.Cryptography.HMACSHA512()
-                : new System.Security.Cryptography.HMACSHA512(Encoding.UTF8.GetBytes(salt))) 
-            {
-                return ComputedPassword.Create(hmac.ComputeHash(Encoding.UTF8.GetBytes(plainPassword)), hmac.Key);
-            }
-        }
+        //private ComputedPassword ComputePassword(string plainPassword, string salt)
+        //{
+        //    using (var hmac = string.IsNullOrEmpty(salt)
+        //        ? new System.Security.Cryptography.HMACSHA512()
+        //        : new System.Security.Cryptography.HMACSHA512(Encoding.UTF8.GetBytes(salt))) 
+        //    {
+        //        return ComputedPassword.Create(hmac.ComputeHash(Encoding.UTF8.GetBytes(plainPassword)), hmac.Key);
+        //    }
+        //}
 
         private ComputedPassword ComputePassword(string plainPassword, byte[] salt)
         {
-            using (var hmac = salt.Any()
+            using (var hmac = salt != null && salt.Any()
                 ? new System.Security.Cryptography.HMACSHA512(salt)
                 : new System.Security.Cryptography.HMACSHA512())
             {
