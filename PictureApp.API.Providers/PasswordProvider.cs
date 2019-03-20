@@ -12,34 +12,8 @@ namespace PictureApp.API.Providers
 
         public ComputedPassword CreatePasswordHash(string plainPassword)
         {
-            //return ComputePassword(plainPassword, string.Empty);
             return ComputePassword(plainPassword, null);
         }
-
-        public bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                
-                if (computedHash.Where((t, i) => t != passwordHash[i]).Any())
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        //private ComputedPassword ComputePassword(string plainPassword, string salt)
-        //{
-        //    using (var hmac = string.IsNullOrEmpty(salt)
-        //        ? new System.Security.Cryptography.HMACSHA512()
-        //        : new System.Security.Cryptography.HMACSHA512(Encoding.UTF8.GetBytes(salt))) 
-        //    {
-        //        return ComputedPassword.Create(hmac.ComputeHash(Encoding.UTF8.GetBytes(plainPassword)), hmac.Key);
-        //    }
-        //}
 
         private ComputedPassword ComputePassword(string plainPassword, byte[] salt)
         {

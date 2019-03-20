@@ -13,6 +13,7 @@ using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
+using PictureApp.API.Dtos;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -51,26 +52,75 @@ namespace PictureApp.API.Tests.Services
             _repositoryFactory.Create<User>().Returns(x => _userRepository);
         }
 
-        // TODO: tests for login method
-        // - EntityNotFoundException - user does not exists
-        // - NotAuthorizedException - when passwords are not equal
-        // - return UserLoggedInDto - when user is properly logged
         [Test]
         public void Login_WhenCalledAndUserDoesNotExist_EntityNotFoundExceptionExpected()
         {
+            // ARRANGE
+            var email = "the user email";
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
+            Func<Task> action = async () => await GetSUT().Login(email, "the user password");
 
+            // ACT & ASSERT
+            action.Should().Throw<EntityNotFoundException>()
+                .WithMessage($"The user with email: {email} does not exist in data store");
         }
 
         [Test]
         public void Login_WhenCalledAndPassedPasswordDoesNotMeetExistingOne_NotAuthorizedExceptionExpected()
         {
+            // ARRANGE
+            var user = new User
+            {
+                Email = "user@post.com",
+                PasswordHash = Encoding.ASCII.GetBytes("current password hash"),
+                PasswordSalt = Encoding.ASCII.GetBytes("current password salt")
+            };
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { user };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            _passwordProvider = new MockPasswordProvider(("the user password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
+            Func<Task> action = async () => await GetSUT().Login(user.Email, "the user wrong password");
 
+            // ACT & ASSERT
+            action.Should().Throw<NotAuthorizedException>()
+                .WithMessage($"The user: {user.Email} password verification has been failed");
         }
 
         [Test]
-        public void Login_WhenCalledAndPassedPasswordMeetsExistingOne_ProperUserLoggedInDtoExpected()
+        public async Task Login_WhenCalledAndPassedPasswordMeetsExistingOne_ProperUserLoggedInDtoExpected()
         {
+            var userPassword = "the user password";
+            var user = new User
+            {
+                Id = 99,
+                Username = "the user",
+                Email = "user@post.com",                
+                PasswordHash = Encoding.ASCII.GetBytes("current password hash"),
+                PasswordSalt = Encoding.ASCII.GetBytes("current password salt")
+            };
+            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
+            {
+                var store = new List<User> { user };
+                return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
+            });
+            _passwordProvider = new MockPasswordProvider((userPassword,
+                ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
+            _mapper.Map<UserLoggedInDto>(Arg.Any<User>()).Returns(x =>
+            {
+                var inputUser = x.ArgAt<User>(0);
+                var dto = new UserLoggedInDto
+                    {Id = inputUser.Id, Email = inputUser.Email, Username = inputUser.Username};                
+                return dto;
+            });
+            var expected = new UserLoggedInDto {Id = user.Id, Email = user.Email, Username = user.Username};
 
+            // ACT
+            var actual = await GetSUT().Login(user.Email, userPassword);
+
+            // ASSERT
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Test]
@@ -79,11 +129,9 @@ namespace PictureApp.API.Tests.Services
             // ARRANGE
             SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
             _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(true);
-
-            // ACT
             Func<Task> action = async () => await GetSUT().Activate("the expired token");
 
-            // ASSERT
+            // ACT & ASSERT
             action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired");
         }
 
@@ -95,12 +143,10 @@ namespace PictureApp.API.Tests.Services
             _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(false);
             _accountActivationTokenRepository
                 .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
-                .Returns(x => (AccountActivationToken) null);            
-
-            // ACT
+                .Returns(x => (AccountActivationToken) null);
             Func<Task> action = async () => await GetSUT().Activate("the token");
 
-            // ASSERT
+            // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>()
                 .WithMessage("Given token the token does not exist in data store");
         }
@@ -446,31 +492,12 @@ namespace PictureApp.API.Tests.Services
 
         public ComputedPassword CreatePasswordHash(string plainPassword, byte[] salt)
         {
-            return _passwords[plainPassword];
+            return _passwords.ContainsKey(plainPassword) ? _passwords[plainPassword] : null;
         }
 
-        ComputedPassword IPasswordProvider.CreatePasswordHash(string plainPassword)
+        public ComputedPassword CreatePasswordHash(string plainPassword)
         {
-            return _passwords[plainPassword];
-        }
-
-        public bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            var pass = _passwords[password];
-            if (passwordHash.Length == pass.Hash.Length && passwordSalt.Length == pass.Salt.Length)
-            {
-                if (passwordHash.Where((t, i) => t != pass.Hash[i]).Any())
-                {
-                    return false;
-                }
-
-                if (passwordSalt.Where((t, i) => t != pass.Salt[i]).Any())
-                {
-                    return false;
-                }
-            }
-
-            return false;
+            return _passwords.ContainsKey(plainPassword) ? _passwords[plainPassword] : null;
         }
     }
 }
