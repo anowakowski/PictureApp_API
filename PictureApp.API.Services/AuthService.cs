@@ -130,7 +130,11 @@ namespace PictureApp.API.Services
                 throw new EntityNotFoundException($"The user with email: {email} does not exist in data store");
             }
 
-            if (!_passwordProvider.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            //ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)
+            //_passwordProvider.CreatePasswordHash(password, user.PasswordSalt);
+
+            //if (!_passwordProvider.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            if (_passwordProvider.CreatePasswordHash(password, user.PasswordSalt) != ComputedPassword.Create(user.PasswordHash, user.PasswordSalt))
             {
                 throw new NotAuthorizedException($"The user: {email} password verification has been failed");
             }

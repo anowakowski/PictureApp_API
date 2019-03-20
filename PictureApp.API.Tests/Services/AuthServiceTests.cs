@@ -50,7 +50,29 @@ namespace PictureApp.API.Tests.Services
             _userRepository = Substitute.For<IRepository<User>>();
             _repositoryFactory.Create<User>().Returns(x => _userRepository);
         }
-                
+
+        // TODO: tests for login method
+        // - EntityNotFoundException - user does not exists
+        // - NotAuthorizedException - when passwords are not equal
+        // - return UserLoggedInDto - when user is properly logged
+        [Test]
+        public void Login_WhenCalledAndUserDoesNotExist_EntityNotFoundExceptionExpected()
+        {
+
+        }
+
+        [Test]
+        public void Login_WhenCalledAndPassedPasswordDoesNotMeetExistingOne_NotAuthorizedExceptionExpected()
+        {
+
+        }
+
+        [Test]
+        public void Login_WhenCalledAndPassedPasswordMeetsExistingOne_ProperUserLoggedInDtoExpected()
+        {
+
+        }
+
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
