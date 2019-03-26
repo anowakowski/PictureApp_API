@@ -42,12 +42,13 @@ namespace PictureApp.API.Tests.Services
             _tokenProvider = Substitute.For<ITokenProvider>();
             _passwordProvider = Substitute.For<IPasswordProvider>();
             _configuration = Substitute.For<IConfiguration>();
+            SetConfigurationSection(default(string), default(int?));
 
-            _repositoryFactory = Substitute.For<IRepositoryFactory>();
+            _repositoryFactory = Substitute.For<IRepositoryFactory>();            
             _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
-            _repositoryFactory.Create<AccountActivationToken>().Returns(x => _accountActivationTokenRepository);
+            _repositoryFactory.Create<AccountActivationToken>().Returns(_accountActivationTokenRepository);
             _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
-            _repositoryFactory.Create<ResetPasswordToken>().Returns(x => _resetPasswordTokenRepository);
+            _repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
             _userRepository = Substitute.For<IRepository<User>>();
             _repositoryFactory.Create<User>().Returns(x => _userRepository);
         }
@@ -57,7 +58,8 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             var email = "the user email";
-            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
+            _userRepository.SingleOrDefaultAsync(default(Expression<Func<User, bool>>))
+                .ReturnsForAnyArgs((User) null);
             Func<Task> action = async () => await GetSUT().Login(email, "the user password");
 
             // ACT & ASSERT
@@ -96,7 +98,7 @@ namespace PictureApp.API.Tests.Services
             {
                 Id = 99,
                 Username = "the user",
-                Email = "user@post.com",                
+                Email = "user@post.com",
                 PasswordHash = Encoding.ASCII.GetBytes("current password hash"),
                 PasswordSalt = Encoding.ASCII.GetBytes("current password salt")
             };
@@ -111,10 +113,10 @@ namespace PictureApp.API.Tests.Services
             {
                 var inputUser = x.ArgAt<User>(0);
                 var dto = new UserLoggedInDto
-                    {Id = inputUser.Id, Email = inputUser.Email, Username = inputUser.Username};                
+                { Id = inputUser.Id, Email = inputUser.Email, Username = inputUser.Username };
                 return dto;
             });
-            var expected = new UserLoggedInDto {Id = user.Id, Email = user.Email, Username = user.Username};
+            var expected = new UserLoggedInDto { Id = user.Id, Email = user.Email, Username = user.Username };
 
             // ACT
             var actual = await GetSUT().Login(user.Email, userPassword);
@@ -127,8 +129,7 @@ namespace PictureApp.API.Tests.Services
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
-            _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(true);
+            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(true);
             Func<Task> action = async () => await GetSUT().Activate("the expired token");
 
             // ACT & ASSERT
@@ -139,11 +140,10 @@ namespace PictureApp.API.Tests.Services
         public void Activate_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
-            _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(false);
+            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(false);
             _accountActivationTokenRepository
-                .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
-                .Returns(x => (AccountActivationToken) null);
+                .SingleOrDefaultAsync(default(Expression<Func<AccountActivationToken, bool>>))
+                .ReturnsForAnyArgs((AccountActivationToken)null);
             Func<Task> action = async () => await GetSUT().Activate("the token");
 
             // ACT & ASSERT
@@ -155,26 +155,25 @@ namespace PictureApp.API.Tests.Services
         public async Task Activate_WhenCalledAndTokenNotExpired_FullAccountActivationExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
-            _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(false);
-            var actualUser = new User {Id = 99};
+            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(false);
+            var actualUser = new User { Id = 99 };
             var actualActivationToken = new AccountActivationToken
-                {Token = "The token", UserId = actualUser.Id};            
+            { Token = "The token", UserId = actualUser.Id };
             _accountActivationTokenRepository
                 .SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
                 .Returns(x =>
                     {
-                        var store = new List<AccountActivationToken> {actualActivationToken};
+                        var store = new List<AccountActivationToken> { actualActivationToken };
                         return store.Single(x.ArgAt<Expression<Func<AccountActivationToken, bool>>>(0).Compile());
                     }
                 );
             actualUser.ActivationToken = actualActivationToken;
             AccountActivationToken tokenToDelete = null;
             _accountActivationTokenRepository.When(x => x.Delete(Arg.Any<AccountActivationToken>()))
-                .Do(x => tokenToDelete = x.ArgAt<AccountActivationToken>(0));            
+                .Do(x => tokenToDelete = x.ArgAt<AccountActivationToken>(0));
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
-                var store = new List<User> {actualUser};
+                var store = new List<User> { actualUser };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
             _unitOfWork.When(x => x.CompleteAsync()).Do(x =>
@@ -184,7 +183,7 @@ namespace PictureApp.API.Tests.Services
                     actualUser.ActivationToken = null;
                 }
             });
-            var expected = new User {Id = 99, IsAccountActivated = true};
+            var expected = new User { Id = 99, IsAccountActivated = true };
 
             // ACT
             await GetSUT().Activate(actualActivationToken.Token);
@@ -192,12 +191,12 @@ namespace PictureApp.API.Tests.Services
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
         }
-        
+
         [Test]
         public void ChangePassword_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User) null);
+            _userRepository.SingleOrDefaultAsync(default(Expression<Func<User, bool>>)).ReturnsForAnyArgs((User)null);
             var email = "user@post.com";
 
             // ACT
@@ -215,10 +214,12 @@ namespace PictureApp.API.Tests.Services
         {
             // ARRANGE
             var user = new User
-                {Email = "user@post.com", PasswordHash = Encoding.ASCII.GetBytes("current password hash")};
+            {
+                Email = "user@post.com", PasswordHash = Encoding.ASCII.GetBytes("current password hash")
+            };
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
-                var store = new List<User> {user};
+                var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
 
@@ -244,9 +245,9 @@ namespace PictureApp.API.Tests.Services
             };
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
-                var store = new List<User> {user};
+                var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
-            });            
+            });
             _passwordProvider = new MockPasswordProvider(("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
 
             // ACT
@@ -301,7 +302,7 @@ namespace PictureApp.API.Tests.Services
         public void ResetPasswordRequest_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
+            _userRepository.SingleOrDefaultAsync(default(Expression<Func<User, bool>>)).ReturnsForAnyArgs((User)null);
             var email = "user@post.com";
 
             // ACT
@@ -321,7 +322,7 @@ namespace PictureApp.API.Tests.Services
             var user = new User
             {
                 Email = email,
-                ResetPasswordToken = new ResetPasswordToken {Token = oldToken}
+                ResetPasswordToken = new ResetPasswordToken { Token = oldToken }
             };
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns(x =>
             {
@@ -367,14 +368,13 @@ namespace PictureApp.API.Tests.Services
             newResetPasswordToken.Should().BeEquivalentTo(newToken);
             await _unitOfWork.Received().CompleteAsync();
         }
-        
+
         [Test]
         public void ResetPassword_WhenCalledAndTokenIsExpired_SecurityTokenExpiredExceptionExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
-            _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(true);
-            
+            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(true);
+
             // ACT
             Func<Task> action = async () => await GetSUT().ResetPassword("the token", "the new password");
 
@@ -382,16 +382,15 @@ namespace PictureApp.API.Tests.Services
             action.Should().Throw<SecurityTokenExpiredException>()
                 .WithMessage("Given token is already expired");
         }
-        
+
         [Test]
         public void ResetPassword_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
             var token = "the token";
             _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(false);
-            _resetPasswordTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<ResetPasswordToken, bool>>>())
-                .Returns((ResetPasswordToken) null);
+            _resetPasswordTokenRepository.SingleOrDefaultAsync(default(Expression<Func<ResetPasswordToken, bool>>))
+                .ReturnsForAnyArgs((ResetPasswordToken)null);
 
             // ACT
             Func<Task> action = async () => await GetSUT().ResetPassword(token, "the new password");
@@ -400,17 +399,16 @@ namespace PictureApp.API.Tests.Services
             action.Should().Throw<EntityNotFoundException>()
                 .WithMessage($"Given token {token} does not exist in data store");
         }
-        
+
         [Test]
         public async Task ResetPassword_WhenCalled_AttemptToSaveUserWithTheNewPasswordExpected()
         {
             // ARRANGE
-            SetConfigurationSection(Arg.Any<string>(), Arg.Any<int?>());
             var password = "the new password";
             var token = new ResetPasswordToken
             {
                 Token = "the token"
-            };            
+            };
             _tokenProvider.IsTokenExpired(Arg.Any<string>(), Arg.Any<int>()).Returns(false);
             _resetPasswordTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<ResetPasswordToken, bool>>>())
                 .Returns(x =>
@@ -423,7 +421,7 @@ namespace PictureApp.API.Tests.Services
                 PasswordHash = Encoding.ASCII.GetBytes("the old password hash"),
                 PasswordSalt = Encoding.ASCII.GetBytes("the old password salt"),
                 ResetPasswordToken = new ResetPasswordToken()
-            };            
+            };
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>())
                 .Returns(x =>
                 {
@@ -448,7 +446,7 @@ namespace PictureApp.API.Tests.Services
             actualUserEntityToSave.Should().BeEquivalentTo(expectedUserEntityToSave);
             await _unitOfWork.Received().CompleteAsync();
         }
-        
+
         private IAuthService GetSUT()
         {
             return new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider, _configuration);
@@ -471,7 +469,7 @@ namespace PictureApp.API.Tests.Services
 
             if (sectionName == null)
             {
-                _configuration.GetSection(Arg.Any<string>()).Returns(configurationSection);
+                _configuration.GetSection(default(string)).ReturnsForAnyArgs(configurationSection);
             }
             else
             {

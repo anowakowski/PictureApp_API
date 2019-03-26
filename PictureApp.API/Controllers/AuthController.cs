@@ -103,14 +103,9 @@ namespace PictureApp.API.Controllers
             {
                 await _authService.ResetPassword(resetPasswordDto.Token, resetPasswordDto.Password);
             }
-            catch (Exception ex)
+            catch (Exception ex) when(ex is SecurityTokenExpiredException || ex is EntityNotFoundException)
             {
-                if (ex is SecurityTokenExpiredException || ex is EntityNotFoundException)
-                {
-                    return BadRequest("The new password can not be provided: token expired or does not exist");
-                }
-
-                throw;
+                return BadRequest("The new password can not be provided: token expired or does not exist");
             }
 
             return StatusCode(StatusCodes.Status201Created);
