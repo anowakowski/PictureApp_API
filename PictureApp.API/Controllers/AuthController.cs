@@ -44,7 +44,7 @@ namespace PictureApp.API.Controllers
 
             await _mediator.Publish(new UserRegisteredNotificationEvent(userForRegister.Email));
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
         }
 
         [HttpPost("activate")]
@@ -54,17 +54,12 @@ namespace PictureApp.API.Controllers
             {
                 await _authService.Activate(userForRegisterActivate.Token);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is SecurityTokenExpiredException || ex is EntityNotFoundException)
             {
-                if (ex is SecurityTokenExpiredException || ex is EntityNotFoundException)
-                {
-                    return BadRequest("User can not be activated: token expired or does not exist");
-                }
-
-                throw;
+                return BadRequest("User can not be activated: token expired or does not exist");
             }
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
         }
 
         [HttpPost("ChangePassword")]
@@ -82,18 +77,23 @@ namespace PictureApp.API.Controllers
                     $"Wrong {nameof(userForChangePassword.OldPassword)} or given {nameof(userForChangePassword.NewPassword)} is not the same as {nameof(userForChangePassword.RetypedPassword)}");
             }
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
         }
 
         [HttpPost("ResetPasswordRequest")]
         public async Task<IActionResult> ResetPasswordRequest(ResetPasswordRequestDto resetPasswordRequestDto)
         {
-            // TODO: provide try/catch clause
-            await _authService.ResetPasswordRequest(resetPasswordRequestDto.Email);
-
-            await _mediator.Publish(new ResetPasswordRequestNotificationEvent(resetPasswordRequestDto.Email));
-
-            return StatusCode(StatusCodes.Status201Created);
+            try
+            {
+                await _authService.ResetPasswordRequest(resetPasswordRequestDto.Email);
+                await _mediator.Publish(new ResetPasswordRequestNotificationEvent(resetPasswordRequestDto.Email));
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            
+            return NoContent();
         }
 
         [HttpPost("ResetPassword")]
@@ -108,7 +108,7 @@ namespace PictureApp.API.Controllers
                 return BadRequest("The new password can not be provided: token expired or does not exist");
             }
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
         }
 
         [HttpPost("login")]
@@ -130,12 +130,15 @@ namespace PictureApp.API.Controllers
                 return Ok(new
                 {
                     token
-                });                
+                });
             }
             catch (EntityNotFoundException ex)
             {
-                // TODO: provide support for NotAuthorizedException exception
                 return NotFound(ex.Message);
+            }
+            catch (NotAuthorizedException ex)
+            {
+                return Unauthorized();
             }
         }        
     }

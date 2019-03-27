@@ -1,5 +1,5 @@
 using System;
-using System.Reflection;
+using System.Linq;
 using System.Text;
 using AutoMapper;
 using MediatR;
@@ -19,7 +19,6 @@ using PictureApp.API.SeedData;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
-using PictureApp.Messaging;
 
 namespace PictureApp.API
 {
@@ -37,7 +36,7 @@ namespace PictureApp.API
         {
             services.AddCors();
             services.AddAutoMapper();
-            services.AddMediatR(typeof(UserRegisteredNotificationHandler).GetTypeInfo().Assembly); // TODO: provide assembly where Handlers are stated
+            services.AddMediatR(AppDomain.CurrentDomain.GetAssemblies().Single(x => x.GetName().Name == "PictureApp.Messaging"));
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(Startup).Namespace)));
             services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -71,9 +70,6 @@ namespace PictureApp.API
                     };
                 });      
             services.AddTransient<Seed>();
-            //var serviceProvider = services.BuildServiceProvider();
-            //IServiceProvider serviceProvider = null;
-            //var uow = serviceProvider.GetService<IUnitOfWork>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)
