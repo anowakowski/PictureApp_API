@@ -15,9 +15,19 @@ namespace PictureApp.API.Providers
 
         public bool IsTokenExpired(string token, int expirationTimeInHours)
         {
-            var data = Convert.FromBase64String(token);
-            return DateTime.FromBinary(BitConverter.ToInt64(data, 0)) <
-                   SystemTime.Now().AddHours(-expirationTimeInHours);
+            bool result;
+            try
+            {
+                var data = Convert.FromBase64String(token);
+                result = DateTime.FromBinary(BitConverter.ToInt64(data, 0)) <
+                         SystemTime.Now().AddHours(-expirationTimeInHours);
+            }
+            catch (FormatException ex)
+            {
+                result = false;
+            }
+
+            return result;
         }
     }    
 }

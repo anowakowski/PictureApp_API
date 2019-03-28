@@ -133,7 +133,7 @@ namespace PictureApp.API.Tests.Services
             Func<Task> action = async () => await GetSUT().Activate("the expired token");
 
             // ACT & ASSERT
-            action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired");
+            action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired or in wrong format");
         }
 
         [Test]
@@ -380,7 +380,7 @@ namespace PictureApp.API.Tests.Services
 
             // ASSERT
             action.Should().Throw<SecurityTokenExpiredException>()
-                .WithMessage("Given token is already expired");
+                .WithMessage("Given token is already expired or in wrong format");
         }
 
         [Test]

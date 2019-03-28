@@ -1,5 +1,4 @@
-using System;
-using System.Linq;
+using System.Reflection;
 using System.Text;
 using AutoMapper;
 using MediatR;
@@ -19,6 +18,7 @@ using PictureApp.API.SeedData;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
+using PictureApp.Messaging;
 
 namespace PictureApp.API
 {
@@ -36,7 +36,7 @@ namespace PictureApp.API
         {
             services.AddCors();
             services.AddAutoMapper();
-            services.AddMediatR(AppDomain.CurrentDomain.GetAssemblies().Single(x => x.GetName().Name == "PictureApp.Messaging"));
+            services.AddMediatR(typeof(UserRegisteredNotificationHandler).GetTypeInfo().Assembly);            
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(Startup).Namespace)));
             services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)

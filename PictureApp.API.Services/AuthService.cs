@@ -160,7 +160,7 @@ namespace PictureApp.API.Services
         {
             if (_tokenProvider.IsTokenExpired(token, expirationTime))
             {
-                throw new SecurityTokenExpiredException("Given token is already expired");
+                throw new SecurityTokenExpiredException("Given token is already expired or in wrong format");
             }
 
             var repository = _repositoryFactory.Create<TTokenEntity>();

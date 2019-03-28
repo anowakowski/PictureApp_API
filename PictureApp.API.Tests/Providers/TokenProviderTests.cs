@@ -69,5 +69,22 @@ namespace PictureApp.API.Tests.Providers
             // ASSERT
             actual.Should().BeFalse();
         }
+
+        [Test]
+        public void IsTokenExpired_WhenCalledAndTokenIsInNotValidFormat_FalseExpected()
+        {
+            // ARRANGE
+            var provider = new TokenProvider();            
+            var token = "this is not valid token";
+            var expirationTime = 24;
+            var time = DateTime.UtcNow.AddHours(23).AddMinutes(59).AddSeconds(59);
+            SystemTime.Set(() => time);
+
+            // ACT
+            var actual = provider.IsTokenExpired(token, expirationTime);
+
+            // ASSERT
+            actual.Should().BeFalse();
+        }
     }
 }

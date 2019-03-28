@@ -3,8 +3,7 @@
 namespace PictureApp.API.Tests.Messaging
 {
     [TestFixture]
-    public class UserRegisteredNotificationHandlerTests
+    public class ResetPasswordRequestNotificationHandlerTests
     {
-
     }
 }
