@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Services;
 using PictureApp.Notifications;
 
@@ -27,7 +28,7 @@ namespace PictureApp.Messaging
             var user = _userService.GetUser(notification.UserEmail);
             if (user == null)
             {
-                throw new ArgumentException($"The user with given email: {notification.UserEmail} does not exist in data store");
+                throw new EntityNotFoundException($"The user with given email: {notification.UserEmail} does not exist in data store");
             }
 
             // Prepare activation uri

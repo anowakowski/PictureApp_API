@@ -17,6 +17,7 @@
     <ProjectReference Include="..\PictureApp.API.Extensions\PictureApp.API.Extensions.csproj" />
     <ProjectReference Include="..\PictureApp.API.Providers\PictureApp.API.Providers.csproj" />
     <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
+    <ProjectReference Include="..\PictureApp.Messaging\PictureApp.Messaging.csproj" />
     <ProjectReference Include="..\PictureApp.Notifications\PictureApp.Notifications.csproj" />
   </ItemGroup>
 
