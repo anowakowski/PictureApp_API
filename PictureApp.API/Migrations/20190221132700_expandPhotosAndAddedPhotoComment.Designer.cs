@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PictureApp.API.Data;
 
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20190221132700_expandPhotosAndAddedPhotoComment")]
+    partial class expandPhotosAndAddedPhotoComment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,23 +103,6 @@ namespace PictureApp.API.Migrations
                     b.ToTable("PhotoComment");
                 });
 
-            modelBuilder.Entity("PictureApp.API.Models.ResetPasswordToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Token");
-
-                    b.Property<int>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("ResetPasswordToken");
-                });
-
             modelBuilder.Entity("PictureApp.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -182,14 +167,6 @@ namespace PictureApp.API.Migrations
                     b.HasOne("PictureApp.API.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("PictureApp.API.Models.ResetPasswordToken", b =>
-                {
-                    b.HasOne("PictureApp.API.Models.User", "User")
-                        .WithOne("ResetPasswordToken")
-                        .HasForeignKey("PictureApp.API.Models.ResetPasswordToken", "UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

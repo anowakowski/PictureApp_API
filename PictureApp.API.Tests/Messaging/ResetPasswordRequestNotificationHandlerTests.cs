@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Services;
 using PictureApp.Messaging;

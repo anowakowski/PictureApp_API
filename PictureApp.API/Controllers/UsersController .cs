@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Services;
 
 namespace PictureApp.API.Controllers
@@ -15,25 +16,73 @@ namespace PictureApp.API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IPhotoService _photoService;
 
-        public UsersController(IUserService userService, IMapper mapper)
+        public UsersController(IUserService userService, IMapper mapper, IPhotoService photoService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _photoService = photoService;
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetUser(int id)
+        public async Task<IActionResult> GetUser(int id)
         {
-            return Ok(_userService.GetUser(id));
+            try
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                return Ok(await _userService.GetUser(id, user => _mapper.Map<UserForDetailedDto>(user)));
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
         }
 
-        [HttpGet("allUserWithFollowerInfo")]
-        public async Task<IActionResult> GetUsersWithFollowers()
+        [HttpGet("userEditProfile/{id}")]
+        public async Task<IActionResult> GetUserForEdit(int id)
+        {
+            try 
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                return Ok(await _userService.GetUser(id, user => _mapper.Map<UserForEditProfileDto>(user)));
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
+
+        }
+
+        [HttpGet("getCurrentUserFollowersForDashboard/{id}")]
+        public async Task<IActionResult> GetUsersWithFollowersForCurrentUser(int id)
+        {
+            try
+            {
+                CheckIfCurrentUserIsCorrect(id);
+
+                var users = await _userService.GetAllWithFollowers(id);
+                await Task.Run(() => _photoService.SetUsersPhotosWithComments(users));
+
+                return Ok(users);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+        }
+
+        private void CheckIfCurrentUserIsCorrect(int id)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            return Ok(await _userService.GetAllWithFollowers(currentUserId));
-        }     
+            if (currentUserId != id)
+            {
+                throw new Exception("requested user Id is different by current user id");
+            }
+        }
     }
 }

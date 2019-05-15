@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -51,6 +52,42 @@ namespace PictureApp.API.Services
             userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
 
             await UserRepository.AddAsync(userToCreate);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task Reregister(UserForReregisterDto userForReregister)
+        {
+            if (userForReregister == null)
+            {
+                throw new ArgumentNullException(nameof(userForReregister));
+            }
+
+            var user = await UserRepository.SingleOrDefaultAsync(x => x.Email == userForReregister.Email.ToLower());
+            if (user == null)
+            {
+                throw new EntityNotFoundException(
+                    $"The user with email: {userForReregister.Email} does not exist in data store");
+            }
+
+            if (user.IsAccountActivated)
+            {
+                throw new NotAuthorizedException("The user account is already activated");
+            }
+
+            var currentActivationToken = await AccountActivationTokenRepository.SingleOrDefaultAsync(x => x.UserId == user.Id);
+
+            var newActivationToken = CreateToken<AccountActivationToken>();
+            if (currentActivationToken == null)
+            {
+                user.ActivationToken = newActivationToken;
+                UserRepository.Update(user);
+            }
+            else
+            {
+                currentActivationToken.Token = newActivationToken.Token;
+                AccountActivationTokenRepository.Update(currentActivationToken);
+            }
+
             await _unitOfWork.CompleteAsync();
         }
 

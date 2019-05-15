@@ -5,9 +5,32 @@
     "Email": "bridgett@testowadomena.com",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/37.jpg",
         "isMain": true,
         "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/300/300",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris.",
+        "PhotoComments": [
+          {
+            "Content": "same Bridgett photo conent",
+            "UserId": 2
+          },
+          {
+            "Content": "same Bridgett photo userId4",
+            "UserId": 4
+          },
+          {
+            "Content": "same Bridgett photo userId7",
+            "UserId": 7
+          }
+        ]
       }
     ]
   },
@@ -17,9 +40,28 @@
     "Email": "cristina@testowadomena.me",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/96.jpg",
         "isMain": true,
         "description": "Consequat nisi ex elit aute aute incididunt proident pariatur minim eu."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/500/300/?gravity=west",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris.",
+        "PhotoComments": [
+          {
+            "Content": "same Cristina photo conent",
+            "UserId": 5
+          },
+          {
+            "Content": "same Cristina photo conent3",
+            "UserId": 4
+          }
+        ]        
       }
     ]
   },
@@ -29,9 +71,60 @@
     "Email": "chasity@testowadomena.co.uk",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/21.jpg",
         "isMain": true,
         "description": "Quis incididunt adipisicing nostrud non cillum id officia occaecat cupidatat aliquip reprehenderit ullamco culpa."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/400/600/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/200/300/?random",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/400/300/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/200/300/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/100/100/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/500/800/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/1000/800/?gravity=west",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   },
@@ -41,9 +134,18 @@
     "Email": "beatrice@testowadomena.name",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/49.jpg",
         "isMain": true,
         "description": "Labore occaecat anim aliqua id tempor voluptate pariatur ad sint magna sunt aliquip."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/500/500/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   },
@@ -53,9 +155,18 @@
     "Email": "viola@testowadomena.biz",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/42.jpg",
         "isMain": true,
         "description": "Labore ut occaecat ipsum laboris ex mollit deserunt ea proident tempor."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/600/200/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   },
@@ -65,9 +176,18 @@
     "Email": "lelia@testowadomena.biz",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/50.jpg",
         "isMain": true,
         "description": "Labore nulla veniam eiusmod ea mollit consequat nisi."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/400/300/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   },
@@ -77,9 +197,18 @@
     "Email": "lora@testowadomena.org",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/11.jpg",
         "isMain": true,
         "description": "Velit nulla ad aliqua exercitation enim ex eiusmod aliqua esse esse dolor amet eiusmod in."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/300/600/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   },
@@ -89,9 +218,18 @@
     "Email": "lynda@testowadomena.info",
     "Photos": [
       {
+        "title": "title1",
+        "subtitle": "subtitle2",
         "url": "https://randomuser.me/api/portraits/women/80.jpg",
         "isMain": true,
         "description": "Laboris nostrud reprehenderit amet velit in."
+      },
+      {
+        "title": "title1",
+        "subtitle": "subtitle2",
+        "url": "https://picsum.photos/600/300/?gravity=east",
+        "isMain": false,
+        "description": "Esse incididunt ex minim ipsum fugiat ullamco qui ea sint irure id anim laboris."
       }
     ]
   }

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos;
+using PictureApp.API.Dtos.PhotosDto;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 
@@ -21,17 +23,17 @@ namespace PictureApp.API.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public UserForDetailedDto GetUser(int userId)
+        public async Task<T> GetUser<T>(int userId, Func<User, T> func) where T : class
         {
-            var user = _userRepository.Find(u => u.Id == userId).FirstOrDefault();
+            var users = await _userRepository.FindAsyncWithIncludedEntities(x => x.Id == userId, include => include.Photos);
+            var user = users.FirstOrDefault();
 
             if (user == null)
             {
-                throw new EntityNotFoundException($"user by id {userId} not found");
+                throw new EntityNotFoundException($"user with id {userId} not found");
             }
-
-            return _mapper.Map<UserForDetailedDto>(user);
-        }
+            return func(user);
+        }        
 
         public UserForDetailedDto GetUser(string email)
         {
@@ -48,7 +50,7 @@ namespace PictureApp.API.Services
         public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int currentUserId)
         {
             var usersWithoutCurrentUser = await _userRepository.FindAsyncWithIncludedEntities(u => u.Id != currentUserId,
-                include => include.Followers, include => include.Following);
+                include => include.Followers, include => include.Following, include => include.Photos);
 
             return usersWithoutCurrentUser.Select(user => _mapper.Map<UsersListWithFollowersForExploreDto>(user)).ToList();
         }
