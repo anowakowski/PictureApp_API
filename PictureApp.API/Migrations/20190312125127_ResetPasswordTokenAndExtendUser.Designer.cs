@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PictureApp.API.Data;
 
 namespace PictureApp.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20190312125127_ResetPasswordTokenAndExtendUser")]
+    partial class ResetPasswordTokenAndExtendUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,10 +68,6 @@ namespace PictureApp.API.Migrations
 
                     b.Property<string>("PublicId");
 
-                    b.Property<string>("Subtitle");
-
-                    b.Property<string>("Title");
-
                     b.Property<string>("Url");
 
                     b.Property<int>("UserId");
@@ -79,26 +77,6 @@ namespace PictureApp.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Photo");
-                });
-
-            modelBuilder.Entity("PictureApp.API.Models.PhotoComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Content");
-
-                    b.Property<int>("PhotoId");
-
-                    b.Property<int>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PhotoComment");
                 });
 
             modelBuilder.Entity("PictureApp.API.Models.ResetPasswordToken", b =>
@@ -168,19 +146,6 @@ namespace PictureApp.API.Migrations
                 {
                     b.HasOne("PictureApp.API.Models.User", "User")
                         .WithMany("Photos")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("PictureApp.API.Models.PhotoComment", b =>
-                {
-                    b.HasOne("PictureApp.API.Models.Photo", "Photo")
-                        .WithMany("PhotoComments")
-                        .HasForeignKey("PhotoId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("PictureApp.API.Models.User", "User")
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

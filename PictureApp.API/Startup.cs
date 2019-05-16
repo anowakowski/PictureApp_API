@@ -36,7 +36,7 @@ namespace PictureApp.API
         {
             services.AddCors();
             services.AddAutoMapper();
-            services.AddMediatR(typeof(UserRegisteredNotificationHandler).GetTypeInfo().Assembly);
+            services.AddMediatR(typeof(UserRegisteredNotificationHandler).GetTypeInfo().Assembly);            
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(Startup).Namespace)));
             services.AddScoped<DbContext>(sp => sp.GetRequiredService<DataContext>());
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -46,7 +46,8 @@ namespace PictureApp.API
                         Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });         
             services.AddScoped<IAuthTokenProvider, JwtTokenProvider>();
-            services.AddScoped<IActivationTokenProvider, ActivationTokenProvider>();
+            services.AddScoped<ITokenProvider, TokenProvider>();
+            services.AddScoped<IPasswordProvider, PasswordProvider>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPhotoService, PhotoService>();
@@ -55,6 +56,7 @@ namespace PictureApp.API
             services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
             services.AddScoped<IFollowerService, FollowerService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<IRepositoryFactory, RepositoryFactory>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -68,7 +70,7 @@ namespace PictureApp.API
                         ValidateAudience = false
                     };
                 });      
-            services.AddTransient<Seed>(); 
+            services.AddTransient<Seed>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)

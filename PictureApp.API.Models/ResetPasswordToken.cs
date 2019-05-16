@@ -1,6 +1,6 @@
 ﻿namespace PictureApp.API.Models
 {
-    public class AccountActivationToken : Entity, ITokenEntity
+    public class ResetPasswordToken : Entity, ITokenEntity
     {
         public int UserId { get; set; }
 

@@ -8,7 +8,7 @@ using PictureApp.API.Providers;
 namespace PictureApp.API.Tests.Providers
 {
     [TestFixture]
-    public class ActivationTokenProviderTests
+    public class TokenProviderTests
     {
         [TearDown]
         public void TearDown()
@@ -21,7 +21,7 @@ namespace PictureApp.API.Tests.Providers
         public void CreateToken_WhenCalled_ProperTokenExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var time = DateTime.Now;
             SystemTime.Set(() => time);
             var key = SystemGuid.NewGuid();
@@ -37,32 +37,51 @@ namespace PictureApp.API.Tests.Providers
         }
 
         [Test]
-        public void IsTokenExpired_WhenCalledAndTokenIsOlderThan24Hours_TrueExpected()
+        public void IsTokenExpired_WhenCalledAndTokenIsOlderThanGivenTime_TrueExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var token = provider.CreateToken();
-            var time = DateTime.UtcNow.AddHours(24).AddMinutes(1);
+            var expirationTime = 24;
+            var time = DateTime.UtcNow.AddHours(expirationTime).AddMinutes(1);
             SystemTime.Set(() => time);
 
             // ACT
-            var actual = provider.IsTokenExpired(token);
+            var actual = provider.IsTokenExpired(token, expirationTime);
 
             // ASSERT
             actual.Should().BeTrue();
         }
 
         [Test]
-        public void IsTokenExpired_WhenCalledAndTokenIsNotOlderThan24Hours_FalseExpected()
+        public void IsTokenExpired_WhenCalledAndTokenIsNotOlderThanGivenTime_FalseExpected()
         {
             // ARRANGE
-            var provider = new ActivationTokenProvider();
+            var provider = new TokenProvider();
             var token = provider.CreateToken();
+            var expirationTime = 24;
             var time = DateTime.UtcNow.AddHours(23).AddMinutes(59).AddSeconds(59);
             SystemTime.Set(() => time);
 
             // ACT
-            var actual = provider.IsTokenExpired(token);
+            var actual = provider.IsTokenExpired(token, expirationTime);
+
+            // ASSERT
+            actual.Should().BeFalse();
+        }
+
+        [Test]
+        public void IsTokenExpired_WhenCalledAndTokenIsInNotValidFormat_FalseExpected()
+        {
+            // ARRANGE
+            var provider = new TokenProvider();            
+            var token = "this is not valid token";
+            var expirationTime = 24;
+            var time = DateTime.UtcNow.AddHours(23).AddMinutes(59).AddSeconds(59);
+            SystemTime.Set(() => time);
+
+            // ACT
+            var actual = provider.IsTokenExpired(token, expirationTime);
 
             // ASSERT
             actual.Should().BeFalse();
