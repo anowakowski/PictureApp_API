@@ -19,6 +19,5 @@
     <ProjectReference Include="..\PictureApp.API.Models\PictureApp.API.Models.csproj" />
     <ProjectReference Include="..\PictureApp.API.Providers\PictureApp.API.Providers.csproj" />
     <ProjectReference Include="..\PictureApp.Notifications\PictureApp.Notifications.csproj" />
-  </ItemGroup>
-
+  </ItemGroup> 
 </Project>
