@@ -10,12 +10,12 @@ namespace PictureApp.API.Services
     public class FileUploadService : IFileUploadService
     {
         private IRepository<Photo> _photoRepository;
-        private IPhotoStoreProvider _photoStoreProvider;
+        private IPhotoStorageProvider _photoStorageProvider;
 
-        public FileUploadService(IRepository<Photo> photoRepository, IPhotoStoreProvider photoStoreProvider)
+        public FileUploadService(IRepository<Photo> photoRepository, IPhotoStorageProvider photoStorageProvider)
         {
             _photoRepository = photoRepository ?? throw new ArgumentNullException(nameof(photoRepository));
-            _photoStoreProvider = photoStoreProvider ?? throw new ArgumentNullException(nameof(photoStoreProvider));
+            _photoStorageProvider = photoStorageProvider ?? throw new ArgumentNullException(nameof(photoStorageProvider));
         }
 
         public Task Upload(Stream file, long userId)
