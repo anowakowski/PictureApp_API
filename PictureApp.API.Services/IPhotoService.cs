@@ -9,5 +9,7 @@ namespace PictureApp.API.Services
     public interface IPhotoService
     {
         Task SetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users);
+
+        Task AddPhotoForUser(PhotoForUserDto photoForUser);
     }
 }

@@ -27,6 +27,11 @@ namespace PictureApp.API.Services
             }
         }
 
+        public Task AddPhotoForUser(PhotoForUserDto photoForUser)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private async Task SetUserPhotos(UsersListWithFollowersForExploreDto user)
         {
             var userPhotos = await _repo.FindAsyncWithIncludedEntities(x => x.UserId == user.Id, include => include.PhotoComments);

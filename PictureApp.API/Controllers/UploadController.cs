@@ -3,22 +3,30 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Models;
+using PictureApp.API.Providers;
 using PictureApp.API.Services;
 
 namespace PictureApp.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UploadController : ControllerBase
     {
         private readonly IFileUploadService _fileUploadService;
         private readonly IUserService _userService;
+        private IFilesStorageProvider _filesStorageProvider;
+        private IMediator _mediator;
+        private IPhotoService _photoService;
+
 
         public UploadController(IFileUploadService fileUploadService, IUserService userService)
         {
@@ -36,7 +44,12 @@ namespace PictureApp.API.Controllers
             {
                 Stream stream = new MemoryStream();
                 x.CopyToAsync(stream);
-                _fileUploadService.Upload(stream, user.Id);
+                var fileUploadResult = _filesStorageProvider.Upload(stream, x.FileName);
+                var photoForUser = new PhotoForUserDto
+                {
+                    Url = fileUploadResult.Uri
+                };
+                _photoService.AddPhotoForUser(photoForUser);
             });
 
             return StatusCode(StatusCodes.Status201Created);
