@@ -20,9 +20,9 @@ namespace PictureApp.API.Controllers
         private readonly IFileUploadService _fileUploadService;
         private readonly IUserService _userService;
 
-        public UploadController(IFileUploadService fileUploadService, IUserService userService)
+        public UploadController(IUserService userService)
         {
-            _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
+            //_fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
         
