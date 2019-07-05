@@ -1,18 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Authentication;
 using System.Threading.Tasks;
 using AutoMapper;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
-using PictureApp.API.Dtos;
 using PictureApp.API.Dtos.UserDto;
-using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
-using PictureApp.API.Services;
 
 namespace PictureApp.API.Services
 {

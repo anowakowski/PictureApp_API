@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +16,7 @@ namespace PictureApp.API.Providers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public ImageUploadResult Upload(string fileName, Stream fileData)
+        public async Task<ImageUploadResult> Upload(string fileName, Stream fileData)
         {
             var cloudinary = CloudinaryInstance();
 

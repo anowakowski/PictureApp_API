@@ -1,9 +1,10 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace PictureApp.API.Providers
 {
     public interface IPhotoStorageProvider
     {
-        ImageUploadResult Upload(string fileName, Stream fileData);
+        Task<ImageUploadResult> Upload(string fileName, Stream fileData);
     }
 }

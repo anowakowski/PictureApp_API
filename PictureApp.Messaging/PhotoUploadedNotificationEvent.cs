@@ -6,9 +6,12 @@ namespace PictureApp.Messaging
     {
         public string FileId { get; }
 
-        public PhotoUploadedNotificationEvent(string fileId)
+        public int UserId { get; }
+
+        public PhotoUploadedNotificationEvent(string fileId, int userId)
         {
             FileId = fileId;
+            UserId = userId;
         }
     }
 }
