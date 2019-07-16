@@ -45,7 +45,7 @@ namespace PictureApp.API.Controllers
                 Stream stream = new MemoryStream();
                 await x.CopyToAsync(stream);
                 var fileMetadata = photosForUpload.Metadata.Single(file => file.FileId == x.FileName);
-                var fileUploadResult = await _filesStorageProvider.Upload(stream, x.FileName);
+                var fileUploadResult = await _filesStorageProvider.UploadAsync(stream, x.FileName);
                 var photoForUser = new PhotoForUserDto
                 {
                     UserId = user.Id,

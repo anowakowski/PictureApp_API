@@ -25,7 +25,7 @@ namespace PictureApp.Messaging
 
         public async Task Handle(PhotoUploadedNotificationEvent notification, CancellationToken cancellationToken)
         {
-            var downloadResult = await _filesStorageProvider.Download(notification.FileId);
+            var downloadResult = await _filesStorageProvider.DownloadAsync(notification.FileId);
             var imageUploadResult = await _photoStorageProvider.Upload(notification.FileId, downloadResult.FileStream);
             var photoForUser = new PhotoForUserDto
             {

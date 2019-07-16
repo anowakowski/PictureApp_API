@@ -5,10 +5,10 @@ namespace PictureApp.API.Providers
 {
     public interface IFilesStorageProvider
     {
-        Task<FileUploadResult> Upload(Stream fileStream, string fileId);
+        Task<FileUploadResult> UploadAsync(Stream fileStream, string fileId);
 
         Task Remove(string fileId);
 
-        Task<FileDownloadResult> Download(string fileId);
+        Task<FileDownloadResult> DownloadAsync(string fileId);
     }
 }
