@@ -19,8 +19,8 @@ namespace PictureApp.API.Providers
 
         public async Task<FileUploadResult> UploadAsync(Stream fileStream, string fileId, string folder = null)
         {
-            var blockBlob = await GetBlockBlob(fileId, folder);
-            
+            var blockBlob = await GetOrCreateBlockBlob(fileId, folder);
+
             await blockBlob.UploadFromStreamAsync(fileStream);
 
             return FileUploadResult.Create(blockBlob.Uri);
@@ -28,37 +28,52 @@ namespace PictureApp.API.Providers
 
         public async Task Remove(string fileId, string folder = null)
         {
-            var blockBlob = await GetBlockBlob(fileId, folder);
+            var blobContainerAndBlockBlob = GetBlobContainerAndBlockBlob(fileId, folder);
+            await Validate(blobContainerAndBlockBlob.cloudBlobContainer ,blobContainerAndBlockBlob.blockBlob);
 
             try
             {
-                await blockBlob.DeleteAsync();
+                await blobContainerAndBlockBlob.blockBlob.DeleteAsync();
             }
             catch (StorageException e)
             {
-                throw new FilesStorageException($"The specified file {fileId} does not exist.", e);
+                throw new FilesStorageException($"The specified file {fileId} can not be removed.", e);
             }
         }
 
         public async Task<FileDownloadResult> DownloadAsync(string fileId, string folder = null)
         {
-            var blockBlob = await GetBlockBlob(fileId, folder);
+            var blobContainerAndBlockBlob = GetBlobContainerAndBlockBlob(fileId, folder);
+            await Validate(blobContainerAndBlockBlob.cloudBlobContainer, blobContainerAndBlockBlob.blockBlob);
 
             var stream = new MemoryStream();
 
             try
             {
-                await blockBlob.DownloadToStreamAsync(stream);
+                await blobContainerAndBlockBlob.blockBlob.DownloadToStreamAsync(stream);
             }
             catch (StorageException e)
             {
-                throw new FilesStorageException($"The specified file {fileId} does not exist.", e);
+                throw new FilesStorageException($"The specified file {fileId} can not be downloaded.", e);
             }
 
             return FileDownloadResult.Create(stream, fileId);
         }
 
-        private async Task<CloudBlockBlob> GetBlockBlob(string blobName, string folder)
+        private async Task<CloudBlockBlob> GetOrCreateBlockBlob(string blobName, string folder)
+        {
+            var blobContainerAndBlockBlob = GetBlobContainerAndBlockBlob(blobName, folder);
+            var blobRequestOptions = new BlobRequestOptions();
+            var operationContext = new OperationContext();
+
+            await blobContainerAndBlockBlob.cloudBlobContainer.CreateIfNotExistsAsync(
+                BlobContainerPublicAccessType.Blob, blobRequestOptions, operationContext);
+
+            return blobContainerAndBlockBlob.cloudBlobContainer.GetBlockBlobReference(blobName);
+        }
+
+        private (CloudBlobContainer cloudBlobContainer, CloudBlockBlob blockBlob) GetBlobContainerAndBlockBlob(
+            string blobName, string folder)
         {
             var connectionString = _configuration.GetSection("AzureCloud:BlobStorageConnectionString").Value;
             var defaultContainerName = _configuration.GetSection("AzureCloud:DefaultContainerName").Value;
@@ -70,12 +85,21 @@ namespace PictureApp.API.Providers
             var storageAccount = CloudStorageAccount.Parse(connectionString);
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
             var blobContainer = cloudBlobClient.GetContainerReference(containerName);
-            var blobRequestOptions = new BlobRequestOptions();
-            var operationContext = new OperationContext();
 
-            await blobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, blobRequestOptions, operationContext);
+            return  (blobContainer, blobContainer.GetBlockBlobReference(blobName));            
+        }
 
-            return blobContainer.GetBlockBlobReference(blobName);
+        private async Task Validate(CloudBlobContainer blobContainer, CloudBlockBlob blockBlob)
+        {
+            if (!await blobContainer.ExistsAsync())
+            {
+                throw new FilesStorageException($"The specified folder {blobContainer.Name} does not exist.");
+            }
+
+            if (!await blockBlob.ExistsAsync())
+            {
+                throw new FilesStorageException($"The specified file {blockBlob.Name} does not exist.");
+            }
         }
     }
 }
