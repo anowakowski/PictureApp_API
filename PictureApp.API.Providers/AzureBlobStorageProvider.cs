@@ -17,18 +17,18 @@ namespace PictureApp.API.Providers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<FileUploadResult> UploadAsync(Stream fileStream, string fileId)
+        public async Task<FileUploadResult> UploadAsync(Stream fileStream, string fileId, string folder = null)
         {
-            var blockBlob = GetBlockBlob(fileId);
+            var blockBlob = await GetBlockBlob(fileId, folder);
             
             await blockBlob.UploadFromStreamAsync(fileStream);
 
             return FileUploadResult.Create(blockBlob.Uri);
         }
 
-        public async Task Remove(string fileId)
+        public async Task Remove(string fileId, string folder = null)
         {
-            var blockBlob = GetBlockBlob(fileId);
+            var blockBlob = await GetBlockBlob(fileId, folder);
 
             try
             {
@@ -40,9 +40,9 @@ namespace PictureApp.API.Providers
             }
         }
 
-        public async Task<FileDownloadResult> DownloadAsync(string fileId)
+        public async Task<FileDownloadResult> DownloadAsync(string fileId, string folder = null)
         {
-            var blockBlob = GetBlockBlob(fileId);
+            var blockBlob = await GetBlockBlob(fileId, folder);
 
             var stream = new MemoryStream();
 
@@ -58,14 +58,23 @@ namespace PictureApp.API.Providers
             return FileDownloadResult.Create(stream, fileId);
         }
 
-        private CloudBlockBlob GetBlockBlob(string blobName)
+        private async Task<CloudBlockBlob> GetBlockBlob(string blobName, string folder)
         {
             var connectionString = _configuration.GetSection("AzureCloud:BlobStorageConnectionString").Value;
-            var containerName = _configuration.GetSection("AzureCloud:ContainerName").Value;
+            var defaultContainerName = _configuration.GetSection("AzureCloud:DefaultContainerName").Value;
+            var containerName =
+                string.IsNullOrEmpty(folder)
+                    ? defaultContainerName
+                    : string.Format(_configuration.GetSection("AzureCloud:ContainerNameFormat").Value, folder);
 
             var storageAccount = CloudStorageAccount.Parse(connectionString);
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
             var blobContainer = cloudBlobClient.GetContainerReference(containerName);
+            var blobRequestOptions = new BlobRequestOptions();
+            var operationContext = new OperationContext();
+
+            await blobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, blobRequestOptions, operationContext);
+
             return blobContainer.GetBlockBlobReference(blobName);
         }
     }
