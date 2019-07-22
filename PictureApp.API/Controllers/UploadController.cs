@@ -85,70 +85,63 @@ namespace PictureApp.API.Controllers
 
             var formAccumulator = new KeyValueAccumulator();
 
-            /*
-            async FileStream ReadFileStream()
-            {
-                var boundary = MultipartRequestHelper.GetBoundary(
+            var boundary = MultipartRequestHelper.GetBoundary(
                     MediaTypeHeaderValue.Parse(Request.ContentType),
                     DefaultFormOptions.MultipartBoundaryLengthLimit);
-                var reader = new MultipartReader(boundary, HttpContext.Request.Body);
+            var reader = new MultipartReader(boundary, HttpContext.Request.Body);
 
-                var section = await reader.ReadNextSectionAsync();
-                while (section != null)
+            MemoryStream fileStream = null;
+            var section = await reader.ReadNextSectionAsync();
+            while (section != null)
+            {
+                var hasContentDispositionHeader =
+                    ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition);
+
+                if (hasContentDispositionHeader)
                 {
-                    var hasContentDispositionHeader =
-                        ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition);
-
-                    if (hasContentDispositionHeader)
+                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
-                        if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                        fileStream = new MemoryStream();
+                        await section.Body.CopyToAsync(fileStream);
+                    }
+                    else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
+                    {
+                        // Content-Disposition: form-data; name="key"
+                        //
+                        // value
+
+                        // Do not limit the key name length here because the 
+                        // multipart headers length limit is already in effect.
+                        var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
+                        var encoding = GetEncoding(section);
+                        using (var streamReader = new StreamReader(
+                            section.Body,
+                            encoding,
+                            detectEncodingFromByteOrderMarks: true,
+                            bufferSize: 1024,
+                            leaveOpen: true))
                         {
-                            var targetFilePath = Path.GetTempFileName();
-                            using (var targetStream = System.IO.File.Create(targetFilePath))
+                            // The value length limit is enforced by MultipartBodyLengthLimit
+                            var value = await streamReader.ReadToEndAsync();
+                            if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
                             {
-                                await section.Body.CopyToAsync(targetStream);
+                                value = string.Empty;
                             }
-                        }
-                        else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
-                        {
-                            // Content-Disposition: form-data; name="key"
-                            //
-                            // value
 
-                            // Do not limit the key name length here because the 
-                            // multipart headers length limit is already in effect.
-                            var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                            var encoding = GetEncoding(section);
-                            using (var streamReader = new StreamReader(
-                                section.Body,
-                                encoding,
-                                detectEncodingFromByteOrderMarks: true,
-                                bufferSize: 1024,
-                                leaveOpen: true))
+                            formAccumulator.Append(key.ToString(), value);
+
+                            if (formAccumulator.ValueCount > DefaultFormOptions.ValueCountLimit)
                             {
-                                // The value length limit is enforced by MultipartBodyLengthLimit
-                                var value = await streamReader.ReadToEndAsync();
-                                if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    value = string.Empty;
-                                }
-
-                                formAccumulator.Append(key.ToString(), value);
-
-                                if (formAccumulator.ValueCount > DefaultFormOptions.ValueCountLimit)
-                                {
-                                    throw new InvalidDataException($"Form key count limit {DefaultFormOptions.ValueCountLimit} exceeded.");
-                                }
+                                throw new InvalidDataException($"Form key count limit {DefaultFormOptions.ValueCountLimit} exceeded.");
                             }
                         }
                     }
+                }
 
-                    section = await reader.ReadNextSectionAsync();
-                };
-            }
-            */
+                section = await reader.ReadNextSectionAsync();
+            };
 
-            var fileMetadata = new FileMetada_tempForTest();
+            var fileMetadata = new PhotoForStreamUploadMetadataDto();
             var formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()), CultureInfo.CurrentCulture);
@@ -160,7 +153,15 @@ namespace PictureApp.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var Index = fileMetadata.Index;
+            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+            var user = _userService.GetUser(userEmail);
+            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileMetadata.FileId, user.PendingUploadPhotosFolderName);
+            var photoForUser = new PhotoForUserDto
+            {
+                UserId = user.Id,
+                Url = fileUploadResult.Uri
+            };
+            await _photoService.AddPhotoForUser(photoForUser);
 
             return Ok();
         }
@@ -175,9 +176,18 @@ namespace PictureApp.API.Controllers
         }
 
         [HttpPost("confirmPendingUploads")]
-        public async Task<IActionResult> ConfirmPendingUploads()
+        public async Task<IActionResult> ConfirmPendingUploads(PhotoForUploadMetadataDto[] pendingFilesMetadata)
         {
-            throw new NotImplementedException();
+            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+            var user = _userService.GetUser(userEmail);
+
+            await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
+            {
+                var @event = new PhotoUploadedNotificationEvent(x.FileId, user.Id, x.Title, x.Subtitle, x.Description);
+                await _mediator.Publish(@event);
+            }));
+
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpGet("getPendingUploads")]

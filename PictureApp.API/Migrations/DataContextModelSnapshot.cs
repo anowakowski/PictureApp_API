@@ -14,7 +14,7 @@ namespace PictureApp.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024");
+                .HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
 
             modelBuilder.Entity("PictureApp.API.Models.AccountActivationToken", b =>
                 {
@@ -113,6 +113,8 @@ namespace PictureApp.API.Migrations
                     b.Property<byte[]>("PasswordHash");
 
                     b.Property<byte[]>("PasswordSalt");
+
+                    b.Property<string>("PendingUploadPhotosFolderName");
 
                     b.Property<string>("Username");
 

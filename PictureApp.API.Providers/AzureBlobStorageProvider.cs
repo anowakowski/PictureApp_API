@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
@@ -60,6 +62,20 @@ namespace PictureApp.API.Providers
             return FileDownloadResult.Create(stream, fileId);
         }
 
+        public async Task<IEnumerable<FileItemResult>> GetFiles(string folder)
+        {
+            if (string.IsNullOrEmpty(folder))
+            {
+                throw new ArgumentException("The folder can not be null or empty");
+            }
+
+            var blobContainer = GetBlobContainer(folder);
+            var continuationToken = new BlobContinuationToken();
+            var blobResultSegment = await blobContainer.ListBlobsSegmentedAsync(continuationToken);
+
+            return blobResultSegment.Results.Cast<CloudBlockBlob>().Select(x => FileItemResult.Create(x.Name));
+        }
+
         private async Task<CloudBlockBlob> GetOrCreateBlockBlob(string blobName, string folder)
         {
             var blobContainerAndBlockBlob = GetBlobContainerAndBlockBlob(blobName, folder);
@@ -75,18 +91,23 @@ namespace PictureApp.API.Providers
         private (CloudBlobContainer cloudBlobContainer, CloudBlockBlob blockBlob) GetBlobContainerAndBlockBlob(
             string blobName, string folder)
         {
+            var blobContainer = GetBlobContainer(folder);
+
+            return (blobContainer, blobContainer.GetBlockBlobReference(blobName));            
+        }
+
+        private CloudBlobContainer GetBlobContainer(string folder = "")
+        {
             var connectionString = _configuration.GetSection("AzureCloud:BlobStorageConnectionString").Value;
             var defaultContainerName = _configuration.GetSection("AzureCloud:DefaultContainerName").Value;
             var containerName =
                 string.IsNullOrEmpty(folder)
                     ? defaultContainerName
                     : string.Format(_configuration.GetSection("AzureCloud:ContainerNameFormat").Value, folder);
-
             var storageAccount = CloudStorageAccount.Parse(connectionString);
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
-            var blobContainer = cloudBlobClient.GetContainerReference(containerName);
-
-            return  (blobContainer, blobContainer.GetBlockBlobReference(blobName));            
+            
+            return cloudBlobClient.GetContainerReference(containerName);
         }
 
         private async Task Validate(CloudBlobContainer blobContainer, CloudBlockBlob blockBlob)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace PictureApp.API.Providers
@@ -10,5 +11,7 @@ namespace PictureApp.API.Providers
         Task Remove(string fileId, string folder = null);
 
         Task<FileDownloadResult> DownloadAsync(string fileId, string folder = null);
+
+        Task<IEnumerable<FileItemResult>> GetFiles(string folder);
     }
 }
