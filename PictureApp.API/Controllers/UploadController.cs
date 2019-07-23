@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using MoreLinq;
 using PictureApp.API.Dtos.PhotosDto;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Filters;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
@@ -66,7 +67,7 @@ namespace PictureApp.API.Controllers
                 await _mediator.Publish(@event);
             });
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
 
             // Responsibility ?
             // - save file in temporary datastore (do it by publishing?) [IFilesStorageProvider]
@@ -153,8 +154,7 @@ namespace PictureApp.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-            var user = _userService.GetUser(userEmail);
+            var user = GetUser();
             var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileMetadata.FileId, user.PendingUploadPhotosFolderName);
             var photoForUser = new PhotoForUserDto
             {
@@ -163,7 +163,7 @@ namespace PictureApp.API.Controllers
             };
             await _photoService.AddPhotoForUser(photoForUser);
 
-            return Ok();
+            return NoContent();
         }
 
         private static Encoding GetEncoding(MultipartSection section)
@@ -177,29 +177,41 @@ namespace PictureApp.API.Controllers
 
         [HttpPost("confirmPendingUploads")]
         public async Task<IActionResult> ConfirmPendingUploads(PhotoForUploadMetadataDto[] pendingFilesMetadata)
-        {
-            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-            var user = _userService.GetUser(userEmail);
-
+        {            
+            var user = GetUser();
             await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
             {
                 var @event = new PhotoUploadedNotificationEvent(x.FileId, user.Id, x.Title, x.Subtitle, x.Description);
                 await _mediator.Publish(@event);
             }));
 
-            return StatusCode(StatusCodes.Status201Created);
+            return NoContent();
         }
 
         [HttpGet("getPendingUploads")]
         public async Task<IActionResult> GetPendingUploads()
         {
-            throw new NotImplementedException();
+            var user = GetUser();
+            var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
+
+            return Ok(pendingUploadFiles.Select(x => new PhotoDto() {FileName = x.FileName}));
         }
 
         [HttpDelete("removePendingUploads/{ids}")]
         public async Task<IActionResult> RemovePendingUploads(string ids)
         {
-            throw new NotImplementedException();
+            var user = GetUser();
+            var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async x =>
+                await _filesStorageProvider.Remove(x, user.PendingUploadPhotosFolderName)));
+
+            return NoContent();            
+        }
+
+        private UserForDetailedDto GetUser()
+        {
+            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+            return _userService.GetUser(userEmail);
         }
     }
 }
