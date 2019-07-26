@@ -13,5 +13,7 @@ namespace PictureApp.API.Providers
         Task<FileDownloadResult> DownloadAsync(string fileId, string folder = null);
 
         Task<IEnumerable<FileItemResult>> GetFiles(string folder);
+
+        string CreateContainerName(string postfix);
     }
 }

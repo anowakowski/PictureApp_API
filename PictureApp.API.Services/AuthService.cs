@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos.UserDto;
+using PictureApp.API.Extensions;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -18,10 +19,11 @@ namespace PictureApp.API.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IActivationTokenProvider _activationTokenProvider;
+        private readonly IFilesStorageProvider _filesStorageProvider;
 
         public AuthService(IRepository<User> userRepository,
             IRepository<AccountActivationToken> accountActivationTokenRepository, IUnitOfWork unitOfWork,
-            IMapper mapper, IActivationTokenProvider activationTokenProvider)
+            IMapper mapper, IActivationTokenProvider activationTokenProvider, IFilesStorageProvider filesStorageProvider)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _accountActivationTokenRepository = accountActivationTokenRepository ??
@@ -30,6 +32,7 @@ namespace PictureApp.API.Services
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _activationTokenProvider = activationTokenProvider ?? throw new ArgumentNullException(nameof(activationTokenProvider));
+            _filesStorageProvider = filesStorageProvider ?? throw new ArgumentNullException(nameof(filesStorageProvider));
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
@@ -43,6 +46,7 @@ namespace PictureApp.API.Services
             userToCreate.PasswordHash = passwordHash;
             userToCreate.PasswordSalt = passwordSalt;
             userToCreate.ActivationToken = CreateActivationToken();
+            userToCreate.PendingUploadPhotosFolderName = _filesStorageProvider.CreateContainerName(SystemGuid.NewGuid().ToString("N"));
 
             await _userRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();

@@ -76,6 +76,11 @@ namespace PictureApp.API.Providers
             return blobResultSegment.Results.Cast<CloudBlockBlob>().Select(x => FileItemResult.Create(x.Name));
         }
 
+        public string CreateContainerName(string postfix)
+        {
+            return string.Format(_configuration.GetSection("AzureCloud:ContainerNameFormat").Value, postfix);
+        }
+
         private async Task<CloudBlockBlob> GetOrCreateBlockBlob(string blobName, string folder)
         {
             var blobContainerAndBlockBlob = GetBlobContainerAndBlockBlob(blobName, folder);
@@ -103,7 +108,7 @@ namespace PictureApp.API.Providers
             var containerName =
                 string.IsNullOrEmpty(folder)
                     ? defaultContainerName
-                    : string.Format(_configuration.GetSection("AzureCloud:ContainerNameFormat").Value, folder);
+                    : CreateContainerName(folder);
             var storageAccount = CloudStorageAccount.Parse(connectionString);
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
             

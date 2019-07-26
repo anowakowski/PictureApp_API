@@ -22,6 +22,7 @@ namespace PictureApp.API.Tests.Services
     [TestFixture]
     public class AuthServiceTests
     {
+        /*
         [Test]
         public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
         {
@@ -245,5 +246,6 @@ namespace PictureApp.API.Tests.Services
             accountActivationTokenToUpdate.Should().BeEquivalentTo(expected);
             await unitOfWork.Received().CompleteAsync();
         }
+        */
     }
 }
