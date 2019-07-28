@@ -32,14 +32,17 @@ namespace PictureApp.API.Controllers
         private readonly IFilesStorageProvider _filesStorageProvider;
         private readonly IMediator _mediator;
         private readonly IPhotoService _photoService;
+        private readonly IFileFormatInspectorProvider _fileFormatInspectorProvider;
         private static readonly FormOptions DefaultFormOptions = new FormOptions();
 
-        public UploadController(IUserService userService, IFilesStorageProvider filesStorageProvider, IMediator mediator, IPhotoService photoService)
+        public UploadController(IUserService userService, IFilesStorageProvider filesStorageProvider,
+            IMediator mediator, IPhotoService photoService, IFileFormatInspectorProvider fileFormatInspectorProvider)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _filesStorageProvider = filesStorageProvider ?? throw new ArgumentNullException(nameof(filesStorageProvider));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _photoService = photoService ?? throw new ArgumentNullException(nameof(photoService));
+            _fileFormatInspectorProvider = fileFormatInspectorProvider ?? throw new ArgumentNullException(nameof(fileFormatInspectorProvider));
         }
 
         [HttpPost("upload"), DisableRequestSizeLimit]
@@ -141,6 +144,11 @@ namespace PictureApp.API.Controllers
 
                 section = await reader.ReadNextSectionAsync();
             };
+
+            if (!_fileFormatInspectorProvider.ValidateFileFormat(fileStream))
+            {
+                return BadRequest("This file format is not supported");
+            }
 
             var fileMetadata = new PhotoForStreamUploadMetadataDto();
             var formValueProvider = new FormValueProvider(
