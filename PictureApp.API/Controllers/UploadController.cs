@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using MoreLinq;
 using PictureApp.API.Dtos.PhotosDto;
@@ -33,16 +34,18 @@ namespace PictureApp.API.Controllers
         private readonly IMediator _mediator;
         private readonly IPhotoService _photoService;
         private readonly IFileFormatInspectorProvider _fileFormatInspectorProvider;
+        private readonly IConfiguration _configuration;
         private static readonly FormOptions DefaultFormOptions = new FormOptions();
 
         public UploadController(IUserService userService, IFilesStorageProvider filesStorageProvider,
-            IMediator mediator, IPhotoService photoService, IFileFormatInspectorProvider fileFormatInspectorProvider)
+            IMediator mediator, IPhotoService photoService, IFileFormatInspectorProvider fileFormatInspectorProvider, IConfiguration configuration)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _filesStorageProvider = filesStorageProvider ?? throw new ArgumentNullException(nameof(filesStorageProvider));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _photoService = photoService ?? throw new ArgumentNullException(nameof(photoService));
             _fileFormatInspectorProvider = fileFormatInspectorProvider ?? throw new ArgumentNullException(nameof(fileFormatInspectorProvider));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         [HttpPost("upload"), DisableRequestSizeLimit]
@@ -163,9 +166,12 @@ namespace PictureApp.API.Controllers
             }
 
             var user = GetUser();
-            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileMetadata.FileId, user.PendingUploadPhotosFolderName);
+            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream,
+                string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value, fileMetadata.FileId,
+                    fileMetadata.FileExtension), user.PendingUploadPhotosFolderName);
             var photoForUser = new PhotoForUserDto
             {
+                FileId = fileMetadata.FileId,
                 UserId = user.Id,
                 Url = fileUploadResult.Uri
             };
@@ -212,6 +218,8 @@ namespace PictureApp.API.Controllers
             var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
             await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async x =>
                 await _filesStorageProvider.Remove(x, user.PendingUploadPhotosFolderName)));
+
+            // TODO: remove files from local database -> IPhotoService.RemovePhotoFromUser
 
             return NoContent();            
         }

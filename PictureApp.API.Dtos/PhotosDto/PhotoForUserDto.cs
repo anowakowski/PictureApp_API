@@ -4,6 +4,8 @@ namespace PictureApp.API.Dtos.PhotosDto
 {
     public class PhotoForUserDto
     {
+        public string FileId { get; set; }
+
         public string Title { get; set; }
 
         public string Subtitle { get; set; }
