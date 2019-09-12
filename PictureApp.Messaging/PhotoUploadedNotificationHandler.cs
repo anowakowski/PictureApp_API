@@ -29,8 +29,12 @@ namespace PictureApp.Messaging
             var imageUploadResult = await _photoStorageProvider.Upload(notification.FileId, downloadResult.FileStream);
             var photoForUser = new PhotoForUserDto
             {
+                FileId = notification.FileId,
                 UserId = notification.UserId,
-                Url = imageUploadResult.Uri
+                Url = imageUploadResult.Uri,
+                Title = notification.Title,
+                Subtitle = notification.Subtitle,
+                Description = notification.Description
             };
             await _photoService.UpdatePhotoForUser(photoForUser);
             await _filesStorageProvider.Remove(notification.FileId);

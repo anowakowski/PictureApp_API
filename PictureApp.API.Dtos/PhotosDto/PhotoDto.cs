@@ -6,6 +6,6 @@ namespace PictureApp.API.Dtos.PhotosDto
 {
     public class PhotoDto
     {
-        public string FileName { get; set; }
+        public string FileId { get; set; }
     }
 }

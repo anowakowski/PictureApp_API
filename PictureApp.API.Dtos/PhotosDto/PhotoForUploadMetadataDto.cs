@@ -4,6 +4,8 @@
     {
         public string FileName { get; set; }
 
+        public string FileExtension { get; set; }
+
         public string FileId { get; set; }
 
         public string Title { get; set; }

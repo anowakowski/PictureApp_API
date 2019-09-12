@@ -12,5 +12,7 @@ namespace PictureApp.API.Services
         Task AddPhotoForUser(PhotoForUserDto photoForUser);
 
         Task UpdatePhotoForUser(PhotoForUserDto photoForUser);
+
+        Task RemovePhoto(int userId, string fileId);
     }
 }

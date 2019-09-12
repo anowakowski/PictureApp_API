@@ -57,6 +57,8 @@ namespace PictureApp.API
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFilesStorageProvider, AzureBlobStorageProvider>();
+            services.AddScoped<IPhotoStorageProvider, CloudinaryPhotoStorageProvider>();
+            services.AddScoped<IFileFormatInspectorProvider, FileFormatInspectorProvider>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {

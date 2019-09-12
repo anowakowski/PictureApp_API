@@ -148,9 +148,10 @@ namespace PictureApp.API.Controllers
                 section = await reader.ReadNextSectionAsync();
             };
 
+            fileStream.Position = 0; // TODO: provide extension method
             if (!_fileFormatInspectorProvider.ValidateFileFormat(fileStream))
             {
-                return BadRequest("This file format is not supported");
+                return BadRequest("Given file format is not supported");
             }
 
             var fileMetadata = new PhotoForStreamUploadMetadataDto();
@@ -166,12 +167,13 @@ namespace PictureApp.API.Controllers
             }
 
             var user = GetUser();
-            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream,
-                string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value, fileMetadata.FileId,
-                    fileMetadata.FileExtension), user.PendingUploadPhotosFolderName);
+            var fileName = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
+                fileMetadata.FileId,
+                fileMetadata.FileExtension);
+            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileName, user.PendingUploadPhotosFolderName);
             var photoForUser = new PhotoForUserDto
             {
-                FileId = fileMetadata.FileId,
+                FileId = fileName,
                 UserId = user.Id,
                 Url = fileUploadResult.Uri
             };
@@ -195,7 +197,10 @@ namespace PictureApp.API.Controllers
             var user = GetUser();
             await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
             {
-                var @event = new PhotoUploadedNotificationEvent(x.FileId, user.Id, x.Title, x.Subtitle, x.Description);
+                var fileId = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
+                    x.FileId,
+                    x.FileExtension);
+                var @event = new PhotoUploadedNotificationEvent(fileId, user.Id, x.Title, x.Subtitle, x.Description);
                 await _mediator.Publish(@event);
             }));
 
@@ -208,7 +213,7 @@ namespace PictureApp.API.Controllers
             var user = GetUser();
             var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
 
-            return Ok(pendingUploadFiles.Select(x => new PhotoDto() {FileName = x.FileName}));
+            return Ok(pendingUploadFiles.Select(x => new PhotoDto() {FileId = x.FileName}));
         }
 
         [HttpDelete("removePendingUploads/{ids}")]
@@ -216,10 +221,11 @@ namespace PictureApp.API.Controllers
         {
             var user = GetUser();
             var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async x =>
-                await _filesStorageProvider.Remove(x, user.PendingUploadPhotosFolderName)));
-
-            // TODO: remove files from local database -> IPhotoService.RemovePhotoFromUser
+            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async fileId =>
+            {
+                await _filesStorageProvider.Remove(fileId, user.PendingUploadPhotosFolderName);
+                await _photoService.RemovePhoto(user.Id, fileId);
+            }));
 
             return NoContent();            
         }

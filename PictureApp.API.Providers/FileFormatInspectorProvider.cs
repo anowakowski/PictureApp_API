@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using FileSignatures;
 using FileSignatures.Formats;
@@ -19,8 +20,13 @@ namespace PictureApp.API.Providers
 
         public bool ValidateFileFormat(Stream fileStream)
         {
-            throw new NotImplementedException();
-            
+            var inspector = new FileFormatInspector();
+            var format = inspector.DetermineFileFormat(fileStream);
+            var sectionValue = _configuration.GetSection("AzureCloud:AllowedMediaTypes").Value;
+            var allowedMediaTypes = sectionValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            return allowedMediaTypes.Contains(format.MediaType);
+
+            // TODO: provide exception when format is null
         }
     }
 }
