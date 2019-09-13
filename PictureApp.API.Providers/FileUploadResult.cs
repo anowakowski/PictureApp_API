@@ -4,17 +4,20 @@ namespace PictureApp.API.Providers
 {
     public class FileUploadResult
     {
+        public string FileId { get; private set; }
+
         public Uri Uri { get; private set; }
 
         private FileUploadResult()
         {
         }
 
-        public static FileUploadResult Create(Uri uri)
+        public static FileUploadResult Create(string fileId, Uri uri)
         {
             return new FileUploadResult
             {
-                Uri = uri                
+                FileId = fileId,
+                Uri = uri
             };
         }
     }

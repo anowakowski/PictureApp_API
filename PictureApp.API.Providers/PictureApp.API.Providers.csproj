@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PictureApp.API.Dtos\PictureApp.API.Dtos.csproj" />
     <ProjectReference Include="..\PictureApp.API.Extensions\PictureApp.API.Extensions.csproj" />
   </ItemGroup>
 

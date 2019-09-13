@@ -49,39 +49,6 @@ namespace PictureApp.API.Controllers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        [HttpPost("upload"), DisableRequestSizeLimit]
-        public async Task<IActionResult> UploadFile(PhotosForUploadDto photosForUpload)
-        {
-            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-            var user = _userService.GetUser(userEmail);
-
-            photosForUpload.Files.ForEach(async x =>
-            {
-                Stream stream = new MemoryStream();
-                await x.CopyToAsync(stream);
-                var fileMetadata = photosForUpload.Metadata.Single(file => file.FileId == x.FileName);
-                var fileUploadResult = await _filesStorageProvider.UploadAsync(stream, x.FileName);
-                var photoForUser = new PhotoForUserDto
-                {
-                    UserId = user.Id,
-                    Title = fileMetadata.Title,
-                    Description = fileMetadata.Description,
-                    Subtitle = fileMetadata.Subtitle,
-                    Url = fileUploadResult.Uri
-                };
-                await _photoService.AddPhotoForUser(photoForUser);
-                var @event = new PhotoUploadedNotificationEvent(fileMetadata.FileId, user.Id);
-                await _mediator.Publish(@event);
-            });
-
-            return NoContent();
-
-            // Responsibility ?
-            // - save file in temporary datastore (do it by publishing?) [IFilesStorageProvider]
-            // - put metadata in local database [IPhotoService]
-            // - publish message that there is uploaded file [IMediator]
-        }
-
         [HttpPost("uploadStream"), DisableRequestSizeLimit]
         [DisableFormValueModelBinding]
         public async Task<IActionResult> UploadStreamFile()
@@ -168,13 +135,10 @@ namespace PictureApp.API.Controllers
             }
 
             var user = GetUser();
-            var fileName = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
-                fileMetadata.FileId,
-                fileMetadata.FileExtension);
-            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileName, user.PendingUploadPhotosFolderName);
+            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileMetadata, user.PendingUploadPhotosFolderName);
             var photoForUser = new PhotoForUserDto
             {
-                FileId = fileName,
+                FileId = fileUploadResult.FileId,
                 UserId = user.Id,
                 Url = fileUploadResult.Uri
             };

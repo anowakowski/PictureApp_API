@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Providers.Exceptions;
 
 namespace PictureApp.API.Providers
@@ -19,13 +20,17 @@ namespace PictureApp.API.Providers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<FileUploadResult> UploadAsync(Stream fileStream, string fileId, string folder = null)
+        public async Task<FileUploadResult> UploadAsync(Stream fileStream, PhotoForStreamUploadMetadataDto fileMetadata, string folder = null)
         {
+            var fileId = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
+                fileMetadata.FileId,
+                fileMetadata.FileExtension);
+
             var blockBlob = await GetOrCreateBlockBlob(fileId, folder);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
 
-            return FileUploadResult.Create(blockBlob.Uri);
+            return FileUploadResult.Create(fileId, blockBlob.Uri);
         }
 
         public async Task Remove(string fileId, string folder = null)
@@ -79,6 +84,13 @@ namespace PictureApp.API.Providers
         public string CreateContainerName(string postfix)
         {
             return string.Format(_configuration.GetSection("AzureCloud:ContainerNameFormat").Value, postfix);
+        }
+
+        public string CreateFileName(PhotoForStreamUploadMetadataDto fileMetadata)
+        {
+            return string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
+                fileMetadata.FileId,
+                fileMetadata.FileExtension);
         }
 
         private async Task<CloudBlockBlob> GetOrCreateBlockBlob(string blobName, string folder)
