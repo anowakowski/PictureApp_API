@@ -18,6 +18,7 @@ using MoreLinq;
 using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Filters;
+using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
 using PictureApp.Messaging;
@@ -148,7 +149,7 @@ namespace PictureApp.API.Controllers
                 section = await reader.ReadNextSectionAsync();
             };
 
-            fileStream.Position = 0; // TODO: provide extension method
+            fileStream.ResetPosition();
             if (!_fileFormatInspectorProvider.ValidateFileFormat(fileStream))
             {
                 return BadRequest("Given file format is not supported");

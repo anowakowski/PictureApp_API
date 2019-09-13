@@ -22,11 +22,14 @@ namespace PictureApp.API.Providers
         {
             var inspector = new FileFormatInspector();
             var format = inspector.DetermineFileFormat(fileStream);
+            if (format == null)
+            {
+                throw new FormatException("Can not recognize format of given file stream.");
+            }
+
             var sectionValue = _configuration.GetSection("AzureCloud:AllowedMediaTypes").Value;
             var allowedMediaTypes = sectionValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
             return allowedMediaTypes.Contains(format.MediaType);
-
-            // TODO: provide exception when format is null
         }
     }
 }
