@@ -16,5 +16,7 @@ namespace PictureApp.API.Providers
         Task<IEnumerable<FileItemResult>> GetFiles(string folder);
 
         string CreateContainerName(string postfix);
+
+        string CreateFileName(PhotoForStreamUploadMetadataDto fileMetadata);
     }
 }

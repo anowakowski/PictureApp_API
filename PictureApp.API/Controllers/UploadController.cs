@@ -35,7 +35,6 @@ namespace PictureApp.API.Controllers
         private readonly IMediator _mediator;
         private readonly IPhotoService _photoService;
         private readonly IFileFormatInspectorProvider _fileFormatInspectorProvider;
-        private readonly IConfiguration _configuration;
         private static readonly FormOptions DefaultFormOptions = new FormOptions();
 
         public UploadController(IUserService userService, IFilesStorageProvider filesStorageProvider,
@@ -46,7 +45,6 @@ namespace PictureApp.API.Controllers
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _photoService = photoService ?? throw new ArgumentNullException(nameof(photoService));
             _fileFormatInspectorProvider = fileFormatInspectorProvider ?? throw new ArgumentNullException(nameof(fileFormatInspectorProvider));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         [HttpPost("uploadStream"), DisableRequestSizeLimit]
@@ -162,10 +160,12 @@ namespace PictureApp.API.Controllers
             var user = GetUser();
             await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
             {
-                var fileId = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
-                    x.FileId,
-                    x.FileExtension);
-                var @event = new PhotoUploadedNotificationEvent(fileId, user.Id, x.Title, x.Subtitle, x.Description);
+                var fileName = _filesStorageProvider.CreateFileName(new PhotoForStreamUploadMetadataDto
+                {
+                    FileId = x.FileId,
+                    FileExtension = x.FileExtension
+                });
+                var @event = new PhotoUploadedNotificationEvent(fileName, user.Id, x.Title, x.Subtitle, x.Description);
                 await _mediator.Publish(@event);
             }));
 

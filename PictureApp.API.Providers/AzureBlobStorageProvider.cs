@@ -22,9 +22,7 @@ namespace PictureApp.API.Providers
 
         public async Task<FileUploadResult> UploadAsync(Stream fileStream, PhotoForStreamUploadMetadataDto fileMetadata, string folder = null)
         {
-            var fileId = string.Format(_configuration.GetSection("AzureCloud:FileNameFormat").Value,
-                fileMetadata.FileId,
-                fileMetadata.FileExtension);
+            var fileId = CreateFileName(fileMetadata);
 
             var blockBlob = await GetOrCreateBlockBlob(fileId, folder);
 

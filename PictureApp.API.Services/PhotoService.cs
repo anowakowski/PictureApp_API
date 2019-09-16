@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,9 +20,9 @@ namespace PictureApp.API.Services
 
         public PhotoService(IRepository<Photo> repository, IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task SetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users)
