@@ -51,14 +51,44 @@ namespace PictureApp.API.Controllers
         [DisableFormValueModelBinding]
         public async Task<IActionResult> UploadStreamFile()
         {
-            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            if (!Helpers.MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
             {
                 return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
             }
 
+            var file = await GetFileStream(HttpContext.Request.Body);
+
+            if (!_fileFormatInspectorProvider.ValidateFileFormat(file.stream))
+            {
+                return BadRequest("Given file format is not supported");
+            }
+
+            var fileMetadata = new PhotoForStreamUploadMetadataDto();
+            var bindingSuccessful = await TryUpdateModelAsync(fileMetadata, prefix: string.Empty,
+                valueProvider: file.formValueProvider);
+            if (!bindingSuccessful && !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = GetUser();
+            var fileUploadResult = await _filesStorageProvider.UploadAsync(file.stream, fileMetadata, user.PendingUploadPhotosFolderName);
+            var photoForUser = new PhotoForUserDto
+            {
+                FileId = fileUploadResult.FileId,
+                UserId = user.Id,
+                Url = fileUploadResult.Uri
+            };
+            await _photoService.AddPhotoForUser(photoForUser);
+
+            return NoContent();
+        }
+
+        private async Task<(Stream stream, IValueProvider formValueProvider)> GetFileStream(Stream body)
+        {
             var formAccumulator = new KeyValueAccumulator();
 
-            var boundary = MultipartRequestHelper.GetBoundary(
+            var boundary = Helpers.MultipartRequestHelper.GetBoundary(
                     MediaTypeHeaderValue.Parse(Request.ContentType),
                     DefaultFormOptions.MultipartBoundaryLengthLimit);
             var reader = new MultipartReader(boundary, HttpContext.Request.Body);
@@ -72,12 +102,12 @@ namespace PictureApp.API.Controllers
 
                 if (hasContentDispositionHeader)
                 {
-                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                    if (Helpers.MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
                     {
                         fileStream = new MemoryStream();
                         await section.Body.CopyToAsync(fileStream);
                     }
-                    else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
+                    else if (Helpers.MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
                     {
                         // Content-Disposition: form-data; name="key"
                         //
@@ -115,34 +145,12 @@ namespace PictureApp.API.Controllers
             };
 
             fileStream.ResetPosition();
-            if (!_fileFormatInspectorProvider.ValidateFileFormat(fileStream))
-            {
-                return BadRequest("Given file format is not supported");
-            }
 
-            var fileMetadata = new PhotoForStreamUploadMetadataDto();
             var formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()), CultureInfo.CurrentCulture);
 
-            var bindingSuccessful = await TryUpdateModelAsync(fileMetadata, prefix: string.Empty,
-                valueProvider: formValueProvider);
-            if (!bindingSuccessful && !ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = GetUser();
-            var fileUploadResult = await _filesStorageProvider.UploadAsync(fileStream, fileMetadata, user.PendingUploadPhotosFolderName);
-            var photoForUser = new PhotoForUserDto
-            {
-                FileId = fileUploadResult.FileId,
-                UserId = user.Id,
-                Url = fileUploadResult.Uri
-            };
-            await _photoService.AddPhotoForUser(photoForUser);
-
-            return NoContent();
+            return (fileStream, formValueProvider);
         }
 
         private static Encoding GetEncoding(MultipartSection section)

@@ -35,15 +35,7 @@ namespace PictureApp.API.Services
 
         public async Task AddPhotoForUser(PhotoForUserDto photoForUser)
         {
-            var photo = new Photo
-            {
-                PublicId = photoForUser.FileId,
-                Title = photoForUser.Title,
-                Description = photoForUser.Description,
-                Subtitle = photoForUser.Subtitle,
-                UserId = photoForUser.UserId,
-                Url = photoForUser.Url.AbsoluteUri
-            };
+            var photo = _mapper.Map<Photo>(photoForUser);
 
             await _repository.AddAsync(photo);
             await _unitOfWork.CompleteAsync();
@@ -51,13 +43,8 @@ namespace PictureApp.API.Services
 
         public async Task UpdatePhotoForUser(PhotoForUserDto photoForUser)
         {
-            var photo = await GetPhoto(photoForUser.UserId, photoForUser.FileId);
-
-            photo.Title = photoForUser.Title;
-            photo.Description = photoForUser.Description;
-            photo.Subtitle = photoForUser.Subtitle;
-            photo.UserId = photoForUser.UserId;
-            photo.Url = photoForUser.Url.AbsoluteUri;
+            var photo = await GetPhoto(photoForUser.UserId, photoForUser.FileId);            
+            photo = _mapper.Map(photoForUser, photo);
 
             _repository.Update(photo);
             await _unitOfWork.CompleteAsync();
