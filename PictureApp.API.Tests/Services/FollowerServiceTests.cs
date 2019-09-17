@@ -15,53 +15,8 @@ using PictureApp.API.Dtos.UserDto;
 namespace PictureApp.API.Tests.Services
 {
     [TestFixture]
-    public class FollowerServiceTests
+    public class FollowerServiceTests : GuardClauseAssertionTests<FollowerService>
     {
-
-        [Test]
-        public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action acttion = () => new FollowerService(null, Substitute.For<IRepository<UserFollower>>(),
-                Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
-
-            // ACT ASSERT
-            acttion.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), null,
-                Substitute.For<IUnitOfWork>(), Substitute.For<IMapper>());
-
-            // ACT ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullThirdDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
-                 null, Substitute.For<IMapper>());
-
-            // ACT ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullFourthDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new FollowerService(Substitute.For<IUserService>(), Substitute.For<IRepository<UserFollower>>(),
-                Substitute.For<IUnitOfWork>(), null);
-
-            // ACT ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
         [Test]
         public void SetUpFollower_WhenCalledNonExistsRelationByUserAndFollower_ShouldAddUserFollowerEntityToRepository()
         {

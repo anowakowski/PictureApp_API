@@ -12,39 +12,8 @@ using PictureApp.Notifications;
 namespace PictureApp.API.Tests.Services
 {
     [TestFixture]
-    public class EmailNotificationServiceTests
+    public class EmailNotificationServiceTests : GuardClauseAssertionTests<EmailNotificationService>
     {
-        [Test]
-        public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new EmailNotificationService(null, Substitute.For<INotificationTemplateService>());
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new EmailNotificationService(Substitute.For<IEmailClientProvider>(), null);
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithAllNotNullDependencies_ExceptionDoesNotThrow()
-        {
-            // ARRANGE
-            Action action = () => new EmailNotificationService(Substitute.For<IEmailClientProvider>(),
-                Substitute.For<INotificationTemplateService>());
-
-            // ACT & ASSERT
-            action.Should().NotThrow();
-        }
-
         [Test]
         public void SendAsync_WhenCalledWithNullNotificationTemplateData_ArgumentNullExceptionExpected()
         {

@@ -11,28 +11,8 @@ using PictureApp.API.Providers;
 namespace PictureApp.API.Tests.Providers
 {
     [TestFixture]
-    public class FileFormatInspectorProviderTests
+    public class FileFormatInspectorProviderTests : GuardClauseAssertionTests<FileFormatInspectorProvider>
     {
-        [Test]
-        public void Ctor_WhenCalledWithNull_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new FileFormatInspectorProvider(null);
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithAllNotNullDependencies_ExceptionDoesNotThrow()
-        {
-            // ARRANGE
-            Action action = () => new FileFormatInspectorProvider(Substitute.For<IConfiguration>());
-
-            // ACT & ASSERT
-            action.Should().NotThrow();
-        }
-
         [Test]
         public void ValidateFileFormat_WhenCalledWithUnrecognizableFileStreamFileFormat_FormatExceptionExpected()
         {

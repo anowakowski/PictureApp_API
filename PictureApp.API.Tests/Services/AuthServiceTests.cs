@@ -20,7 +20,7 @@ using PictureApp.API.Services;
 namespace PictureApp.API.Tests.Services
 {
     [TestFixture]
-    public class AuthServiceTests
+    public class AuthServiceTests : GuardClauseAssertionTests<AuthService>
     {
         private IRepository<User> _userRepository;
         private IRepository<AccountActivationToken> _accountActivationTokenRepository;

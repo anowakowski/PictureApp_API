@@ -15,28 +15,8 @@ using PictureApp.Notifications;
 namespace PictureApp.API.Tests.Services
 {
     [TestFixture]
-    public class NotificationTemplateServiceTests
+    public class NotificationTemplateServiceTests : GuardClauseAssertionTests<NotificationTemplateService>
     {
-        [Test]
-        public void Ctor_WhenCalledWithNullDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new NotificationTemplateService(null);
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNotNullDependency_ExceptionDoesNotThrow()
-        {
-            // ARRANGE
-            Action action = () => new NotificationTemplateService(Substitute.For<IRepository<NotificationTemplate>>());
-
-            // ACT & ASSERT
-            action.Should().NotThrow();
-        }
-
         [Test]
         public void CreateNotification_WhenCalledWithNull_ArgumentNullExceptionExpected()
         {
