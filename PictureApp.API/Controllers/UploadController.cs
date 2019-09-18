@@ -17,6 +17,7 @@ using Microsoft.Net.Http.Headers;
 using MoreLinq;
 using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Dtos.UserDto;
+using PictureApp.API.Extensions;
 using PictureApp.API.Filters;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
@@ -205,7 +206,7 @@ namespace PictureApp.API.Controllers
 
         private UserForDetailedDto GetUser()
         {
-            var userEmail = User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+            var userEmail = User.GetEmail();
             return _userService.GetUser(userEmail);
         }
     }
