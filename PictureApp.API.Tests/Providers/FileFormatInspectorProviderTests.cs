@@ -31,7 +31,7 @@ namespace PictureApp.API.Tests.Providers
             // ARRANGE
             var configuration = Substitute.For<IConfiguration>();
             var configurationSection = Substitute.For<IConfigurationSection>();
-            configurationSection.Value.Returns("image/jpeg");
+            configurationSection.Value = "image/jpeg";
             configuration.GetSection(Arg.Any<string>()).Returns(configurationSection);
             var sut = new FileFormatInspectorProvider(configuration);
 

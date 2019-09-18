@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PictureApp.Notifications
+﻿namespace PictureApp.Notifications
 {
     public class UserRegisteredNotificationTemplateData : NotificationTemplateData
     {

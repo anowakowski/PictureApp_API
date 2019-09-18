@@ -9,6 +9,7 @@
     <PackageReference Include="AutoFixture.Idioms" Version="4.11.0" />
     <PackageReference Include="FluentAssertions" Version="5.5.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="MoreLinq" Version="3.1.0" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
@@ -18,6 +19,7 @@
     <ProjectReference Include="..\PictureApp.API.Extensions\PictureApp.API.Extensions.csproj" />
     <ProjectReference Include="..\PictureApp.API.Providers\PictureApp.API.Providers.csproj" />
     <ProjectReference Include="..\PictureApp.API.Services\PictureApp.API.Services.csproj" />
+    <ProjectReference Include="..\PictureApp.Messaging\PictureApp.Messaging.csproj" />
     <ProjectReference Include="..\PictureApp.Notifications\PictureApp.Notifications.csproj" />
   </ItemGroup>
 

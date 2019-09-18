@@ -7,6 +7,7 @@ namespace PictureApp.API.Dtos.UserDto
         public string Email { get; set; }
         public string PhotoUrl { get; set; }
         public string ActivationToken { get; set; }
+        public string ResetPasswordToken { get; set; }
         public string PendingUploadPhotosFolderName { get; set; }
     }
 }
