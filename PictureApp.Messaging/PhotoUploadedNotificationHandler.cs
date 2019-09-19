@@ -38,12 +38,6 @@ namespace PictureApp.Messaging
             };
             await _photoService.UpdatePhotoForUser(photoForUser);
             await _filesStorageProvider.Remove(notification.FileId);
-
-            // Responsibility ?
-            // - get file from temporary storage [IFilesStorageProvider]
-            // - upload file to the cloudinary [IPhotoStorageProvider]
-            // - when the file is successfully uploaded in cloud get a metadata and update state in database [IPhotoService]
-            // - remove file from the datastore mentioned above [IFilesStorageProvider]
         }
     }
 }
