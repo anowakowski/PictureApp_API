@@ -85,6 +85,47 @@ namespace PictureApp.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("confirmPendingUploads")]
+        public async Task<IActionResult> ConfirmPendingUploads(PhotoForUploadMetadataDto[] pendingFilesMetadata)
+        {
+            var user = GetUser();
+            await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
+            {
+                var fileName = _filesStorageProvider.CreateFileName(new PhotoForStreamUploadMetadataDto
+                {
+                    FileId = x.FileId,
+                    FileExtension = x.FileExtension
+                });
+                var @event = new PhotoUploadedNotificationEvent(fileName, user.Id, x.Title, x.Subtitle, x.Description);
+                await _mediator.Publish(@event);
+            }));
+
+            return NoContent();
+        }
+
+        [HttpGet("getPendingUploads")]
+        public async Task<IActionResult> GetPendingUploads()
+        {
+            var user = GetUser();
+            var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
+
+            return Ok(pendingUploadFiles.Select(x => new PhotoDto() { FileId = x.FileName }));
+        }
+
+        [HttpDelete("removePendingUploads/{ids}")]
+        public async Task<IActionResult> RemovePendingUploads(string ids)
+        {
+            var user = GetUser();
+            var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async fileId =>
+            {
+                await _filesStorageProvider.Remove(fileId, user.PendingUploadPhotosFolderName);
+                await _photoService.RemovePhoto(user.Id, fileId);
+            }));
+
+            return NoContent();
+        }
+
         private async Task<(Stream stream, IValueProvider formValueProvider)> GetFileStream(Stream body)
         {
             var formAccumulator = new KeyValueAccumulator();
@@ -161,47 +202,6 @@ namespace PictureApp.API.Controllers
             // UTF-7 is insecure and should not be honored. UTF-8 will succeed in 
             // most cases.
             return !hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding) ? Encoding.UTF8 : mediaType.Encoding;
-        }
-
-        [HttpPost("confirmPendingUploads")]
-        public async Task<IActionResult> ConfirmPendingUploads(PhotoForUploadMetadataDto[] pendingFilesMetadata)
-        {            
-            var user = GetUser();
-            await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
-            {
-                var fileName = _filesStorageProvider.CreateFileName(new PhotoForStreamUploadMetadataDto
-                {
-                    FileId = x.FileId,
-                    FileExtension = x.FileExtension
-                });
-                var @event = new PhotoUploadedNotificationEvent(fileName, user.Id, x.Title, x.Subtitle, x.Description);
-                await _mediator.Publish(@event);
-            }));
-
-            return NoContent();
-        }
-
-        [HttpGet("getPendingUploads")]
-        public async Task<IActionResult> GetPendingUploads()
-        {
-            var user = GetUser();
-            var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
-
-            return Ok(pendingUploadFiles.Select(x => new PhotoDto() {FileId = x.FileName}));
-        }
-
-        [HttpDelete("removePendingUploads/{ids}")]
-        public async Task<IActionResult> RemovePendingUploads(string ids)
-        {
-            var user = GetUser();
-            var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async fileId =>
-            {
-                await _filesStorageProvider.Remove(fileId, user.PendingUploadPhotosFolderName);
-                await _photoService.RemovePhoto(user.Id, fileId);
-            }));
-
-            return NoContent();            
         }
 
         private UserForDetailedDto GetUser()
