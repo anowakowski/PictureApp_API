@@ -23,8 +23,7 @@ namespace PictureApp.API.Services
         private readonly ITokenProvider _tokenProvider;
         private readonly IPasswordProvider _passwordProvider;
         private readonly IRepositoryFactory _repositoryFactory;
-        private readonly IConfiguration _configuration;
-        private readonly IFilesStorageProvider _filesStorageProvider;
+        private readonly IConfiguration _configuration;        
 
         private IRepository<User> UserRepository => _repositoryFactory.Create<User>();
         private IRepository<AccountActivationToken> AccountActivationTokenRepository =>
@@ -34,7 +33,7 @@ namespace PictureApp.API.Services
 
         public AuthService(IRepositoryFactory repositoryFactory, IUnitOfWork unitOfWork,
             IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider,
-            IFilesStorageProvider filesStorageProvider, IConfiguration configuration)
+            IConfiguration configuration)
         {
             _repositoryFactory = repositoryFactory ?? throw new ArgumentNullException(nameof(repositoryFactory));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -42,7 +41,6 @@ namespace PictureApp.API.Services
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
             _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _filesStorageProvider = filesStorageProvider ?? throw new ArgumentNullException(nameof(filesStorageProvider));
         }
 
         public async Task Register(UserForRegisterDto userForRegister)
@@ -53,7 +51,7 @@ namespace PictureApp.API.Services
             SetPasswordForUser(userToCreate, userForRegister.Password);
 
             userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
-            userToCreate.PendingUploadPhotosFolderName = _filesStorageProvider.CreateContainerName(SystemGuid.NewGuid().ToString("N"));
+            userToCreate.PendingUploadPhotosFolderName = SystemGuid.NewGuid().ToString("N");
 
             await UserRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();

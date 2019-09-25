@@ -31,7 +31,6 @@ namespace PictureApp.API.Tests.Services
 		private IConfiguration _configuration;
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
-        private IFilesStorageProvider _filesStorageProvider;
 		private ITokenProvider _tokenProvider;
         private IPasswordProvider _passwordProvider;
         private IRepositoryFactory _repositoryFactory;
@@ -45,7 +44,7 @@ namespace PictureApp.API.Tests.Services
             _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
             _unitOfWork = Substitute.For<IUnitOfWork>();
             SetUpMapper();
-            SetUpFilesStorageProvider();
+            //SetUpFilesStorageProvider();
 			
 			_tokenProvider = Substitute.For<ITokenProvider>();
             _passwordProvider = new MockPasswordProvider();
@@ -56,8 +55,7 @@ namespace PictureApp.API.Tests.Services
 			_repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
 			_repositoryFactory.Create<User>().Returns(x => _userRepository);
 
-            _sut = new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider,
-                _filesStorageProvider, _configuration);
+            _sut = new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider, _configuration);
 
             SystemGuid.Reset();
 		}
@@ -648,12 +646,6 @@ namespace PictureApp.API.Tests.Services
                 };
                 return user;
             });
-        }
-
-        private void SetUpFilesStorageProvider()
-        {
-            _filesStorageProvider = Substitute.For<IFilesStorageProvider>();
-            _filesStorageProvider.CreateContainerName(Arg.Any<string>()).Returns(x => x.ArgAt<string>(0));
         }
 
         private void SetPasswordProvider(params (string password, ComputedPassword computedPassword)[] passwords)
