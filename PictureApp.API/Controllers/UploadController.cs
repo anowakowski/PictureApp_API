@@ -109,18 +109,38 @@ namespace PictureApp.API.Controllers
             var user = GetUser();
             var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
 
-            return Ok(pendingUploadFiles.Select(x => new PhotoDto() { FileId = x.FileName }));
+            return Ok(pendingUploadFiles.Select(x => new PhotoDto() { FileId = x.FileId }));
         }
 
         [HttpDelete("removePendingUploads/{ids}")]
         public async Task<IActionResult> RemovePendingUploads(string ids)
         {
             var user = GetUser();
-            var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            await Task.Run(() => pendingUploadsToRemoveIds.ForEach(async fileId =>
+
+            var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
+            if (!pendingUploadFiles.Any())
             {
-                await _filesStorageProvider.Remove(fileId, user.PendingUploadPhotosFolderName);
-                await _photoService.RemovePhoto(user.Id, fileId);
+                return BadRequest("Attempt to remove pending uploads failed because there are no pending uploads");
+            }
+
+            var pendingUploadsToRemoveIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries);                        
+            var pendingUploadsToRemove = pendingUploadFiles.Select(x => x.FileId)
+                .Intersect(pendingUploadsToRemoveIds.AsEnumerable()).ToList();
+
+            if (!pendingUploadsToRemove.Any())
+            {
+                return BadRequest("Attempt to remove pending uploads failed because of wrong passed ids");
+            }
+
+            if (pendingUploadsToRemoveIds.AsEnumerable().Except(pendingUploadFiles.Select(x => x.FileId)).Any())
+            {
+                return BadRequest("Attempt to remove pending uploads failed because there are some not existing id in passed ids");
+            }
+
+            await Task.Run(() => pendingUploadsToRemove.ForEach( fileId =>
+            {
+                _filesStorageProvider.Remove(fileId, user.PendingUploadPhotosFolderName);
+                _photoService.RemovePhoto(user.Id, fileId);
             }));
 
             return NoContent();

@@ -6,17 +6,17 @@ namespace PictureApp.API.Providers
 {
     public class FileItemResult
     {
-        public string FileName { get; private set; }
+        public string FileId { get; private set; }
 
         private FileItemResult()
         {
         }
 
-        public static FileItemResult Create(string fileName)
+        public static FileItemResult Create(string fileId)
         {
             return new FileItemResult
             {
-                FileName = fileName
+                FileId = fileId
             };
         }
     }
