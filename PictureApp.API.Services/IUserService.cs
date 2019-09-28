@@ -13,6 +13,8 @@ namespace PictureApp.API.Services
 
         UserForDetailedDto GetUser(string email);
 
+        Task<UserForDetailedDto> GetUser(int id);
+
         Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int userId);
     }
 }

@@ -18,6 +18,7 @@ using MoreLinq;
 using PictureApp.API.Dtos.PhotosDto;
 using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Extensions;
+using PictureApp.API.Extensions.Extensions;
 using PictureApp.API.Filters;
 using PictureApp.API.Helpers;
 using PictureApp.API.Providers;
@@ -86,9 +87,29 @@ namespace PictureApp.API.Controllers
         }
 
         [HttpPost("confirmPendingUploads")]
-        public async Task<IActionResult> ConfirmPendingUploads(PhotoForUploadMetadataDto[] pendingFilesMetadata)
+        public async Task<IActionResult> ConfirmPendingUploads([FromBody] PhotoForUploadMetadataDto[] pendingFilesMetadata)
         {
             var user = GetUser();
+
+            var pendingUploadFiles = await _filesStorageProvider.GetFiles(user.PendingUploadPhotosFolderName);
+            if (!pendingUploadFiles.Any())
+            {
+                return BadRequest("Attempt to confirm pending uploads failed because there are no awaiting uploads");
+            }
+
+            var pendingUploadsToConfirmIds = pendingFilesMetadata.Select(x => _filesStorageProvider.CreateFileName(
+                new PhotoForStreamUploadMetadataDto
+                {
+                    FileId = x.FileId,
+                    FileExtension = x.FileExtension
+                }));
+            var pendingUploadsToConfirm = pendingUploadFiles.Select(x => x.FileId)
+                .Intersect(pendingUploadsToConfirmIds.AsEnumerable()).ToList();
+            if (!pendingUploadsToConfirm.Any())
+            {
+                return BadRequest("Attempt to confirm pending uploads failed because of wrong passed ids");
+            }
+
             await Task.Run(() => pendingFilesMetadata.ToList().ForEach(async x =>
             {
                 var fileName = _filesStorageProvider.CreateFileName(new PhotoForStreamUploadMetadataDto

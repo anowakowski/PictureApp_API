@@ -9,6 +9,7 @@ using FluentAssertions;
 using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Dtos.PhotosDto;
+using PictureApp.API.Dtos.UserDto;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
 using PictureApp.Messaging;
@@ -24,19 +25,22 @@ namespace PictureApp.API.Tests.Messaging
             // ARRANGE
             var filesStorageProvider = Substitute.For<IFilesStorageProvider>();
             var fileDownloadResult = FileDownloadResult.Create(new MemoryStream(), "aa37acdc7bbf4260922a25066948db9e");
-            filesStorageProvider.DownloadAsync(fileDownloadResult.FileId).Returns(fileDownloadResult);
+            filesStorageProvider.DownloadAsync(fileDownloadResult.FileId, Arg.Any<string>()).Returns(fileDownloadResult);
             var photoStorageProvider = Substitute.For<IPhotoStorageProvider>();
             var imageUploadResult = ImageUploadResult.Create(new Uri(@"https:\\veileye.com"),
                 new Uri(@"https:\\veileye.com"), "jpg", DateTime.Now, "publicId", 1, "signature", "version");
             photoStorageProvider.Upload(fileDownloadResult.FileId, fileDownloadResult.FileStream)
                 .Returns(imageUploadResult);
-            var photoService = Substitute.For<IPhotoService>();
+            var photoService = Substitute.For<IPhotoServiceScoped>();
+            var userService = Substitute.For<IUserService>();
+            userService.GetUser(Arg.Any<int>()).Returns(new UserForDetailedDto());
 
-            var sut = new PhotoUploadedNotificationHandler(photoStorageProvider, photoService, filesStorageProvider);
+            var sut = new PhotoUploadedNotificationHandler(userService, photoStorageProvider, photoService, filesStorageProvider);
             var photoUploadedNotificationEvent = new PhotoUploadedNotificationEvent(fileDownloadResult.FileId, 99);
             var expectedPhotoForUser = new PhotoForUserDto
             {
                 FileId = photoUploadedNotificationEvent.FileId,
+                PublicId = imageUploadResult.PublicId,
                 UserId = photoUploadedNotificationEvent.UserId,
                 Url = imageUploadResult.Uri,
                 Title = photoUploadedNotificationEvent.Title,

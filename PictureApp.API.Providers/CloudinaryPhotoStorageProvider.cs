@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
+using PictureApp.API.Extensions.Extensions;
 
 namespace PictureApp.API.Providers
 {
@@ -20,6 +21,7 @@ namespace PictureApp.API.Providers
         {
             var cloudinary = CloudinaryInstance();
 
+            fileData.ResetPosition();
             var fileDescription = new FileDescription(fileName, fileData);
 
             var imageUploadParameters = new ImageUploadParams

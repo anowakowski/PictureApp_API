@@ -47,6 +47,18 @@ namespace PictureApp.API.Services
             return _mapper.Map<UserForDetailedDto>(user);
         }
 
+        public async Task<UserForDetailedDto> GetUser(int id)
+        {
+            var user = await _userRepository.GetById(id);
+
+            if (user == null)
+            {
+                throw new EntityNotFoundException($"User identifies by id {id} does not exist in data store");
+            }
+
+            return _mapper.Map<UserForDetailedDto>(user);
+        }
+
         public async Task<IEnumerable<UsersListWithFollowersForExploreDto>> GetAllWithFollowers(int currentUserId)
         {
             var usersWithoutCurrentUser = await _userRepository.FindAsyncWithIncludedEntities(u => u.Id != currentUserId,

@@ -38,8 +38,7 @@ namespace PictureApp.API.Helpers
                 });
             CreateMap<User, UserForEditProfileDto>();
             CreateMap<PhotoForUserDto, Photo>()
-                .ForMember(dest => dest.Url, opt => { opt.MapFrom(src => src.Url.AbsoluteUri); })
-                .ForMember(dest => dest.PublicId, opt => { opt.MapFrom(src => src.FileId); });
+                .ForMember(dest => dest.Url, opt => { opt.MapFrom(src => src.Url.AbsoluteUri); });
         }
     }
 }

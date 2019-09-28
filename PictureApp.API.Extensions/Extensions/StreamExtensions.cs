@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.IO;
 
-namespace PictureApp.API.Helpers
+namespace PictureApp.API.Extensions.Extensions
 {
     public static class StreamExtensions
     {

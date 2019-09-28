@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos.PhotosDto;
@@ -27,7 +29,7 @@ namespace PictureApp.API.Services
 
         public async Task SetUsersPhotosWithComments(IEnumerable<UsersListWithFollowersForExploreDto> users)
         {
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 await SetUserPhotos(user);
             }
@@ -43,7 +45,7 @@ namespace PictureApp.API.Services
 
         public async Task UpdatePhotoForUser(PhotoForUserDto photoForUser)
         {
-            var photo = await GetPhoto(photoForUser.UserId, photoForUser.FileId);            
+            var photo = await GetPhoto(photoForUser.UserId, photoForUser.FileId);
             photo = _mapper.Map(photoForUser, photo);
 
             _repository.Update(photo);
@@ -52,7 +54,7 @@ namespace PictureApp.API.Services
 
         public async Task RemovePhoto(int userId, string fileId)
         {
-            var photo = await GetPhoto(userId, fileId);           
+            var photo = await GetPhoto(userId, fileId);
             _repository.Delete(photo);
             await _unitOfWork.CompleteAsync();
         }
@@ -65,7 +67,7 @@ namespace PictureApp.API.Services
 
         private async Task<Photo> GetPhoto(int userId, string fileId)
         {
-            var photos = await _repository.FindAsync(x => x.UserId == userId && x.PublicId == fileId);
+            var photos = await _repository.FindAsync(x => x.UserId == userId && x.FileId == fileId);
             var photo = photos.SingleOrDefault();
             if (photo == null)
             {
