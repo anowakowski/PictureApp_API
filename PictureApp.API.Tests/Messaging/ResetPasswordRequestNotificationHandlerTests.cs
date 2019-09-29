@@ -15,52 +15,8 @@ using PictureApp.Notifications;
 namespace PictureApp.API.Tests.Messaging
 {
     [TestFixture]
-    public class ResetPasswordRequestNotificationHandlerTests
+    public class ResetPasswordRequestNotificationHandlerTests : GuardClauseAssertionTests<ResetPasswordRequestNotificationHandler>
     {
-        [Test]
-        public void Ctor_WhenCalledWithNullFirstDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new ResetPasswordRequestNotificationHandler(null,
-                Substitute.For<IUserService>(), Substitute.For<IConfiguration>());
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullSecondDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new ResetPasswordRequestNotificationHandler(Substitute.For<INotificationService>(),
-                null, Substitute.For<IConfiguration>());
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNullThirdDependency_ArgumentNullExceptionExpected()
-        {
-            // ARRANGE
-            Action action = () => new ResetPasswordRequestNotificationHandler(Substitute.For<INotificationService>(),
-                Substitute.For<IUserService>(), null);
-
-            // ACT & ASSERT
-            action.Should().Throw<ArgumentNullException>();
-        }
-
-        [Test]
-        public void Ctor_WhenCalledWithNotNullDependency_ExceptionDoesNotThrow()
-        {
-            // ARRANGE
-            Action action = () => new ResetPasswordRequestNotificationHandler(Substitute.For<INotificationService>(),
-                Substitute.For<IUserService>(), Substitute.For<IConfiguration>());
-
-            // ACT & ASSERT
-            action.Should().NotThrow();
-        }
-
         [Test]
         public void Handle_WhenCalledAndUserDoesNotExist_EntityNotFoundExceptionExpected()
         {

@@ -5,8 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
-using PictureApp.API.Dtos;
 using PictureApp.API.Dtos.UserDto;
+using PictureApp.API.Extensions;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -23,7 +23,7 @@ namespace PictureApp.API.Services
         private readonly ITokenProvider _tokenProvider;
         private readonly IPasswordProvider _passwordProvider;
         private readonly IRepositoryFactory _repositoryFactory;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;        
 
         private IRepository<User> UserRepository => _repositoryFactory.Create<User>();
         private IRepository<AccountActivationToken> AccountActivationTokenRepository =>
@@ -32,7 +32,8 @@ namespace PictureApp.API.Services
             _repositoryFactory.Create<ResetPasswordToken>();
 
         public AuthService(IRepositoryFactory repositoryFactory, IUnitOfWork unitOfWork,
-            IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider, IConfiguration configuration)
+            IMapper mapper, ITokenProvider tokenProvider, IPasswordProvider passwordProvider,
+            IConfiguration configuration)
         {
             _repositoryFactory = repositoryFactory ?? throw new ArgumentNullException(nameof(repositoryFactory));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
@@ -50,6 +51,7 @@ namespace PictureApp.API.Services
             SetPasswordForUser(userToCreate, userForRegister.Password);
 
             userToCreate.ActivationToken = CreateToken<AccountActivationToken>();
+            userToCreate.PendingUploadPhotosFolderName = SystemGuid.NewGuid().ToString("N");
 
             await UserRepository.AddAsync(userToCreate);
             await _unitOfWork.CompleteAsync();

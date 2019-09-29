@@ -35,8 +35,10 @@ namespace PictureApp.API.Helpers
             CreateMap<User, UsersListWithFollowersForExploreDto>()
                 .ForMember(dest => dest.IsFollowerForCurrentUser, opt => {
                     opt.MapFrom(src => src.Following.Any(x => x.FolloweeId == src.Id));
-                });   
-            CreateMap<User, UserForEditProfileDto>();                           
+                });
+            CreateMap<User, UserForEditProfileDto>();
+            CreateMap<PhotoForUserDto, Photo>()
+                .ForMember(dest => dest.Url, opt => { opt.MapFrom(src => src.Url.AbsoluteUri); });
         }
     }
 }

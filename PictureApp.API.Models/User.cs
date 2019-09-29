@@ -23,5 +23,6 @@ namespace PictureApp.API.Models
         public ICollection<UserFollower> Followers { get; set; }
 
         public ICollection<UserFollower> Following { get; set; }
+        public string PendingUploadPhotosFolderName { get; set; }
     }
 }

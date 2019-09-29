@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using System.Text;
 using AutoMapper;
@@ -16,6 +17,7 @@ using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.SeedData;
 using PictureApp.API.Helpers;
+using PictureApp.API.Models;
 using PictureApp.API.Providers;
 using PictureApp.API.Services;
 using PictureApp.Messaging;
@@ -51,6 +53,14 @@ namespace PictureApp.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPhotoService, PhotoService>();
+            services.AddScoped<IPhotoServiceScoped, PhotoServiceScoped>();
+            services.AddSingleton(provider =>
+                new Func<IServiceScope, IPhotoService>((scope) =>
+                {
+                    var dbContext = scope.ServiceProvider.GetService<DbContext>();
+                    return new PhotoService(new Repository<Photo>(dbContext), new UnitOfWork(dbContext),
+                        scope.ServiceProvider.GetService<IMapper>());
+                }));
             services.AddScoped<INotificationService, EmailNotificationService>();
             services.AddScoped<IEmailClientProvider, MailKitEmailClientProvider>();
             services.AddScoped<INotificationTemplateService, NotificationTemplateService>();
@@ -58,6 +68,9 @@ namespace PictureApp.API
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IRepositoryFactory, RepositoryFactory>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IFilesStorageProvider, AzureBlobStorageProvider>();
+            services.AddScoped<IPhotoStorageProvider, CloudinaryPhotoStorageProvider>();
+            services.AddScoped<IFileFormatInspectorProvider, FileFormatInspectorProvider>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {

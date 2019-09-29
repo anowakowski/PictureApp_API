@@ -5,6 +5,7 @@ namespace PictureApp.API.Models
 {
     public class Photo : Entity
     {
+        public string FileId { get; set; }
         public string Title { get; set; }
         public string Subtitle { get; set; }
         public string Url { get; set; }

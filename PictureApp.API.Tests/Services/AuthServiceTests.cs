@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,12 +8,13 @@ using AutoMapper;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MoreLinq.Extensions;
+using MoreLinq;
 using NSubstitute;
 using NUnit.Framework;
 using PictureApp.API.Data;
 using PictureApp.API.Data.Repositories;
 using PictureApp.API.Dtos.UserDto;
+using PictureApp.API.Extensions;
 using PictureApp.API.Extensions.Exceptions;
 using PictureApp.API.Models;
 using PictureApp.API.Providers;
@@ -22,45 +23,51 @@ using PictureApp.API.Services;
 namespace PictureApp.API.Tests.Services
 {
     [TestFixture]
-    public class AuthServiceTests
+    public class AuthServiceTests : GuardClauseAssertionTests<AuthService>
     {
+		private IRepository<User> _userRepository;
+        private IRepository<AccountActivationToken> _accountActivationTokenRepository;
+		private IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
+		private IConfiguration _configuration;
         private IUnitOfWork _unitOfWork;
         private IMapper _mapper;
-        private ITokenProvider _tokenProvider;
+		private ITokenProvider _tokenProvider;
         private IPasswordProvider _passwordProvider;
         private IRepositoryFactory _repositoryFactory;
-        private IRepository<AccountActivationToken> _accountActivationTokenRepository;
-        private IRepository<ResetPasswordToken> _resetPasswordTokenRepository;
-        private IRepository<User> _userRepository;
-        private IConfiguration _configuration;
-
-        [SetUp]
+        private IAuthService _sut;
+		
+		[SetUp]
         public void SetUp()
         {
+			_userRepository = Substitute.For<IRepository<User>>();
+            _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
             _unitOfWork = Substitute.For<IUnitOfWork>();
-            _mapper = Substitute.For<IMapper>();
-            _tokenProvider = Substitute.For<ITokenProvider>();
-            _passwordProvider = Substitute.For<IPasswordProvider>();
+            SetUpMapper();
+            //SetUpFilesStorageProvider();
+			
+			_tokenProvider = Substitute.For<ITokenProvider>();
+            _passwordProvider = new MockPasswordProvider();
             _configuration = Substitute.For<IConfiguration>();
             SetConfigurationSection(default(string), default(int?));
-
-            _repositoryFactory = Substitute.For<IRepositoryFactory>();            
-            _accountActivationTokenRepository = Substitute.For<IRepository<AccountActivationToken>>();
+            _repositoryFactory = Substitute.For<IRepositoryFactory>();
             _repositoryFactory.Create<AccountActivationToken>().Returns(_accountActivationTokenRepository);
-            _resetPasswordTokenRepository = Substitute.For<IRepository<ResetPasswordToken>>();
-            _repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
-            _userRepository = Substitute.For<IRepository<User>>();
-            _repositoryFactory.Create<User>().Returns(x => _userRepository);
-        }
+			_repositoryFactory.Create<ResetPasswordToken>().Returns(_resetPasswordTokenRepository);
+			_repositoryFactory.Create<User>().Returns(x => _userRepository);
 
-        [Test]
+            _sut = new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider, _configuration);
+
+            SystemGuid.Reset();
+		}
+		
+		[Test]
         public void Login_WhenCalledAndUserDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
             var email = "the user email";
             _userRepository.SingleOrDefaultAsync(default(Expression<Func<User, bool>>))
                 .ReturnsForAnyArgs((User) null);
-            Func<Task> action = async () => await GetSUT().Login(email, "the user password");
+            Func<Task> action = async () => await _sut.Login(email, "the user password");
 
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>()
@@ -82,8 +89,9 @@ namespace PictureApp.API.Tests.Services
                 var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            _passwordProvider = new MockPasswordProvider(("the user password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
-            Func<Task> action = async () => await GetSUT().Login(user.Email, "the user wrong password");
+            SetPasswordProvider(("the user password",
+                ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
+            Func<Task> action = async () => await _sut.Login(user.Email, "the user wrong password");
 
             // ACT & ASSERT
             action.Should().Throw<NotAuthorizedException>()
@@ -107,8 +115,10 @@ namespace PictureApp.API.Tests.Services
                 var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            _passwordProvider = new MockPasswordProvider((userPassword,
+
+            SetPasswordProvider((userPassword,
                 ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
+
             _mapper.Map<UserLoggedInDto>(Arg.Any<User>()).Returns(x =>
             {
                 var inputUser = x.ArgAt<User>(0);
@@ -119,24 +129,13 @@ namespace PictureApp.API.Tests.Services
             var expected = new UserLoggedInDto { Id = user.Id, Email = user.Email, Username = user.Username };
 
             // ACT
-            var actual = await GetSUT().Login(user.Email, userPassword);
+            var actual = await _sut.Login(user.Email, userPassword);
 
             // ASSERT
             actual.Should().BeEquivalentTo(expected);
         }
-
-        [Test]
-        public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
-        {
-            // ARRANGE
-            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(true);
-            Func<Task> action = async () => await GetSUT().Activate("the expired token");
-
-            // ACT & ASSERT
-            action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired or in wrong format");
-        }
-
-        [Test]
+		
+		[Test]
         public void Activate_WhenCalledAndTokenDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
@@ -144,14 +143,25 @@ namespace PictureApp.API.Tests.Services
             _accountActivationTokenRepository
                 .SingleOrDefaultAsync(default(Expression<Func<AccountActivationToken, bool>>))
                 .ReturnsForAnyArgs((AccountActivationToken)null);
-            Func<Task> action = async () => await GetSUT().Activate("the token");
+            Func<Task> action = async () => await _sut.Activate("the token");
 
             // ACT & ASSERT
             action.Should().Throw<EntityNotFoundException>()
                 .WithMessage("Given token the token does not exist in data store");
         }
+		
+		[Test]
+        public void Activate_WhenCalledAndTokenExpired_SecurityTokenExpiredExceptionExpected()
+        {
+            // ARRANGE
+            _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(true);
+            Func<Task> action = async () => await _sut.Activate("the expired token");
 
-        [Test]
+            // ACT & ASSERT
+            action.Should().Throw<SecurityTokenExpiredException>().WithMessage("Given token is already expired or in wrong format");
+        }
+		
+		[Test]
         public async Task Activate_WhenCalledAndTokenNotExpired_FullAccountActivationExpected()
         {
             // ARRANGE
@@ -186,42 +196,74 @@ namespace PictureApp.API.Tests.Services
             var expected = new User { Id = 99, IsAccountActivated = true };
 
             // ACT
-            await GetSUT().Activate(actualActivationToken.Token);
+            await _sut.Activate(actualActivationToken.Token);
 
             // ASSERT
             actualUser.Should().BeEquivalentTo(expected);
         }
-
-        [Test]
-        public void Reregister_WhenCalledWithNull_ArgumentNullExceptionExpected()
+		
+		[Test]
+        public async Task Register_WhenCalled_ProperUserToAddExpected()
         {
             // ARRANGE
-            var sut = GetSUT();
+            var userForRegister = new UserForRegisterDto
+                {Username = "User for register", Email = "user@post.com", Password = "password"};
+            (string password, ComputedPassword computedPassword) password = (userForRegister.Password,
+                ComputedPassword.Create(Encoding.ASCII.GetBytes("password hash"), Encoding.ASCII.GetBytes("password salt")));
+            SetPasswordProvider(password);
+            var newActivationToken = new AccountActivationToken { Token = "The token" };
+            User userToAdd = null;
+            _userRepository.When(x => x.AddAsync(Arg.Any<User>())).Do(x => { userToAdd = x.ArgAt<User>(0); });
+            _tokenProvider.CreateToken().Returns(newActivationToken.Token);
+            _accountActivationTokenRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<AccountActivationToken, bool>>>())
+                .Returns((AccountActivationToken)null);
+            var pendingUploadPhotosFolderName = Guid.NewGuid();
+            SystemGuid.Set(() => pendingUploadPhotosFolderName);
+            var expected = new User
+            {
+                Username = userForRegister.Username,
+                Email = userForRegister.Email,
+                ActivationToken = new AccountActivationToken {Token = newActivationToken.Token},
+                IsAccountActivated = false,
+                PendingUploadPhotosFolderName = pendingUploadPhotosFolderName.ToString("N"),
+                PasswordHash = password.computedPassword.Hash,
+                PasswordSalt = password.computedPassword.Salt
+            };
 
             // ACT
-            Func<Task> action = async () => await sut.Reregister(null);
+            await _sut.Register(userForRegister);
+
+            // ASSERT
+            userToAdd.Should().BeEquivalentTo(expected);
+            await _unitOfWork.Received().CompleteAsync();
+        }
+		
+		[Test]
+        public void Reregister_WhenCalledWithNull_ArgumentNullExceptionExpected()
+        {
+            // ARRANGE & ACT
+            Func<Task> action = async () => await _sut.Reregister(null);
 
             // ASSERT
             action.Should().Throw<ArgumentNullException>();
         }
-
-        [Test]
+		
+		[Test]
         public void Reregister_WhenCalledEndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
             _userRepository.SingleOrDefaultAsync(Arg.Any<Expression<Func<User, bool>>>()).Returns((User)null);
-            var sut = GetSUT();
 
             // ACT
             var userForReregister = new UserForReregisterDto {Email = "user@post.com"};
-            Func<Task> action = async () => await sut.Reregister(userForReregister);
+            Func<Task> action = async () => await _sut.Reregister(userForReregister);
 
             // ASSERT
             action.Should().Throw<EntityNotFoundException>()
                 .WithMessage($"The user with email: {userForReregister.Email} does not exist in data store");
         }
-
-        [Test]
+		
+		[Test]
         public void Reregister_WhenCalledEndUserHasAlreadyActivatedAccount_NotAuthorizedExceptionExpected()
         {
             // ARRANGE
@@ -231,18 +273,17 @@ namespace PictureApp.API.Tests.Services
                 var store = new List<User> { actualUser };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            var sut = GetSUT();
 
             // ACT
             var userForReregister = new UserForReregisterDto { Email = actualUser.Email };
-            Func<Task> action = async () => await sut.Reregister(userForReregister);
+            Func<Task> action = async () => await _sut.Reregister(userForReregister);
 
             // ASSERT
             action.Should().Throw<NotAuthorizedException>()
                 .WithMessage("The user account is already activated");
         }
-
-        [Test]
+		
+		[Test]
         public async Task Reregister_WhenCalledAndUserHasNoToken_NewTokenInUserExpected()
         {
             // ARRANGE
@@ -264,7 +305,7 @@ namespace PictureApp.API.Tests.Services
                 Email = actualUser.Email,
                 ActivationToken = new AccountActivationToken {Token = newActivationToken.Token}
             };
-            var sut = GetSUT();
+            var sut = _sut;
 
             // ACT
             await sut.Reregister(new UserForReregisterDto {Email = actualUser .Email});
@@ -273,8 +314,8 @@ namespace PictureApp.API.Tests.Services
             userToUpdate.Should().BeEquivalentTo(expected);
             await _unitOfWork.Received().CompleteAsync();
         }
-
-        [Test]
+		
+		[Test]
         public async Task Reregister_WhenCalledAndUserHasAlreadyToken_UpdatedTokenExpected()
         {
             // ARRANGE
@@ -302,7 +343,7 @@ namespace PictureApp.API.Tests.Services
                 UserId = actualUser.Id,
                 Token = newActivationToken.Token
             };
-            var sut = GetSUT();
+            var sut = _sut;
 
             // ACT
             await sut.Reregister(new UserForReregisterDto { Email = actualUser.Email });
@@ -311,8 +352,8 @@ namespace PictureApp.API.Tests.Services
             accountActivationTokenToUpdate.Should().BeEquivalentTo(expected);
             await _unitOfWork.Received().CompleteAsync();
         }
-
-        [Test]
+		
+		[Test]
         public void ChangePassword_WhenCalledAndUserWithGivenEmailDoesNotExist_EntityNotFoundExceptionExpected()
         {
             // ARRANGE
@@ -321,7 +362,7 @@ namespace PictureApp.API.Tests.Services
 
             // ACT
             Func<Task> action = async () =>
-                await GetSUT().ChangePassword(email, "the old password", "the new password",
+                await _sut.ChangePassword(email, "the old password", "the new password",
                     "the new password");
 
             // ASSERT
@@ -345,7 +386,7 @@ namespace PictureApp.API.Tests.Services
 
             // ACT
             Func<Task> action = async () =>
-                await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
+                await _sut.ChangePassword(user.Email, "the old password", "the new password",
                     "the new password");
 
             // ASSERT
@@ -368,11 +409,12 @@ namespace PictureApp.API.Tests.Services
                 var store = new List<User> { user };
                 return store.Single(x.ArgAt<Expression<Func<User, bool>>>(0).Compile());
             });
-            _passwordProvider = new MockPasswordProvider(("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
+            SetPasswordProvider(("the old password",
+                ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)));
 
             // ACT
             Func<Task> action = async () =>
-                await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
+                await _sut.ChangePassword(user.Email, "the old password", "the new password",
                     "the different retyped new password");
 
             // ASSERT
@@ -397,8 +439,7 @@ namespace PictureApp.API.Tests.Services
             });
             User userToUpdate = null;
             _userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => userToUpdate = x.ArgAt<User>(0));
-            _passwordProvider = new MockPasswordProvider(
-                ("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)),
+            SetPasswordProvider(("the old password", ComputedPassword.Create(user.PasswordHash, user.PasswordSalt)),
                 ("the new password",
                     ComputedPassword.Create(Encoding.ASCII.GetBytes("the new password hash"),
                         Encoding.ASCII.GetBytes("the new password salt"))));
@@ -410,7 +451,7 @@ namespace PictureApp.API.Tests.Services
             };
 
             // ACT            
-            await GetSUT().ChangePassword(user.Email, "the old password", "the new password",
+            await _sut.ChangePassword(user.Email, "the old password", "the new password",
                 "the new password");
 
             // ASSERT
@@ -426,7 +467,7 @@ namespace PictureApp.API.Tests.Services
             var email = "user@post.com";
 
             // ACT
-            Func<Task> action = async () => await GetSUT().ResetPasswordRequest(email);
+            Func<Task> action = async () => await _sut.ResetPasswordRequest(email);
 
             // ASSERT
             action.Should().Throw<EntityNotFoundException>()
@@ -454,7 +495,7 @@ namespace PictureApp.API.Tests.Services
                 .Do(x => resetPasswordTokenToDelete = x.ArgAt<ResetPasswordToken>(0).Token);
 
             // ACT
-            await GetSUT().ResetPasswordRequest(email);
+            await _sut.ResetPasswordRequest(email);
 
             // ASSERT            
             resetPasswordTokenToDelete.Should().BeEquivalentTo(oldToken);
@@ -482,7 +523,7 @@ namespace PictureApp.API.Tests.Services
                 .Do(x => newResetPasswordToken = x.ArgAt<User>(0).ResetPasswordToken.Token);
 
             // ACT
-            await GetSUT().ResetPasswordRequest(email);
+            await _sut.ResetPasswordRequest(email);
 
             // ASSERT            
             newResetPasswordToken.Should().BeEquivalentTo(newToken);
@@ -496,7 +537,7 @@ namespace PictureApp.API.Tests.Services
             _tokenProvider.IsTokenExpired(default(string), default(int)).ReturnsForAnyArgs(true);
 
             // ACT
-            Func<Task> action = async () => await GetSUT().ResetPassword("the token", "the new password");
+            Func<Task> action = async () => await _sut.ResetPassword("the token", "the new password");
 
             // ASSERT
             action.Should().Throw<SecurityTokenExpiredException>()
@@ -513,7 +554,7 @@ namespace PictureApp.API.Tests.Services
                 .ReturnsForAnyArgs((ResetPasswordToken)null);
 
             // ACT
-            Func<Task> action = async () => await GetSUT().ResetPassword(token, "the new password");
+            Func<Task> action = async () => await _sut.ResetPassword(token, "the new password");
 
             // ASSERT
             action.Should().Throw<EntityNotFoundException>()
@@ -524,7 +565,7 @@ namespace PictureApp.API.Tests.Services
         public async Task ResetPassword_WhenCalled_AttemptToSaveUserWithTheNewPasswordExpected()
         {
             // ARRANGE
-            var password = "the new password";
+            var newPassword = "the new password";
             var token = new ResetPasswordToken
             {
                 Token = "the token"
@@ -552,7 +593,7 @@ namespace PictureApp.API.Tests.Services
             _userRepository.When(x => x.Update(Arg.Any<User>())).Do(x => actualUserEntityToSave = x.ArgAt<User>(0));
             var computedNewPassword = ComputedPassword.Create(
                 Encoding.ASCII.GetBytes("the new password hash"), Encoding.ASCII.GetBytes("the new password salt"));
-            _passwordProvider.CreatePasswordHash(password).Returns(computedNewPassword);
+            SetPasswordProvider((newPassword, computedNewPassword));
             var expectedUserEntityToSave = new User
             {
                 PasswordHash = computedNewPassword.Hash,
@@ -560,16 +601,11 @@ namespace PictureApp.API.Tests.Services
             };
 
             // ACT
-            await GetSUT().ResetPassword(token.Token, password);
+            await _sut.ResetPassword(token.Token, newPassword);
 
             // ASSERT
             actualUserEntityToSave.Should().BeEquivalentTo(expectedUserEntityToSave);
             await _unitOfWork.Received().CompleteAsync();
-        }
-
-        private IAuthService GetSUT()
-        {
-            return new AuthService(_repositoryFactory, _unitOfWork, _mapper, _tokenProvider, _passwordProvider, _configuration);
         }
 
         private void SetConfigurationSection(string sectionName, int? value)
@@ -596,16 +632,35 @@ namespace PictureApp.API.Tests.Services
                 _configuration.GetSection(sectionName).Returns(configurationSection);
             }
         }
-    }
-    
-    internal class MockPasswordProvider : IPasswordProvider
+		
+		private void SetUpMapper()
+		{
+            _mapper = Substitute.For<IMapper>();
+            _mapper.Map<User>(Arg.Any<UserForRegisterDto>()).Returns(x =>
+            {
+                var userForRegister = x.ArgAt<UserForRegisterDto>(0);
+                var user = new User
+                {
+                    Username = userForRegister.Username,
+                    Email = userForRegister.Email
+                };
+                return user;
+            });
+        }
+
+        private void SetPasswordProvider(params (string password, ComputedPassword computedPassword)[] passwords)
+        {
+            (_passwordProvider as MockPasswordProvider)?.AddPasswords(passwords);
+        }
+	}
+	
+	internal class MockPasswordProvider : IPasswordProvider
     {
         private readonly IDictionary<string, ComputedPassword> _passwords;
 
-        public MockPasswordProvider(params (string password, ComputedPassword computedPassword)[] passwords)
+        public MockPasswordProvider()
         {
             _passwords = new Dictionary<string, ComputedPassword>();
-            passwords.ForEach(x => _passwords.Add(x.password, x.computedPassword));
         }
 
         public ComputedPassword CreatePasswordHash(string plainPassword, byte[] salt)
@@ -616,6 +671,11 @@ namespace PictureApp.API.Tests.Services
         public ComputedPassword CreatePasswordHash(string plainPassword)
         {
             return _passwords.ContainsKey(plainPassword) ? _passwords[plainPassword] : null;
+        }
+
+        public void AddPasswords((string password, ComputedPassword computedPassword)[] passwords)
+        {
+            passwords.ForEach(x => _passwords.Add(x.password, x.computedPassword));
         }
     }
 }
