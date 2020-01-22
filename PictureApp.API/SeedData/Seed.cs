@@ -27,6 +27,8 @@ namespace PictureApp.API.SeedData
                 user.PasswordHash = computedPassword.Hash;
                 user.PasswordSalt = computedPassword.Salt;
                 user.Username = user.Username.ToLower();
+
+                 context.Users.Add(user);
             });
 
             context.SaveChanges();
