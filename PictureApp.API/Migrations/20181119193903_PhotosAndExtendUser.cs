@@ -15,7 +15,7 @@ namespace PictureApp.API.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Url = table.Column<string>(nullable: true),
                     Description = table.Column<string>(nullable: true),
-                    DateAdded = table.Column<DateTime>(nullable: false, defaultValueSql: "SELECT DATETIME('now')"),
+                    DateAdded = table.Column<DateTime>(nullable: false, defaultValueSql: "2010-01-01"),
                     IsMain = table.Column<bool>(nullable: false),
                     PublicId = table.Column<string>(nullable: true),
                     UserId = table.Column<int>(nullable: false)
